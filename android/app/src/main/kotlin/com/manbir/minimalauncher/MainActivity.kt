@@ -1,4 +1,4 @@
-package com.example.minimalauncher
+package com.manbir.minimalauncher
 
 import io.flutter.embedding.android.FlutterActivity
 
