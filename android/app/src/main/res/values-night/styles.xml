@@ -16,7 +16,7 @@
         <item name="android:windowBackground">?android:colorBackground</item>
     </style>
 
-    
+
     <!-- transparent background -->
     <style name="Theme.Transparent" parent="android:Theme">
         <item name="android:windowBackground">@android:color/white</item>
