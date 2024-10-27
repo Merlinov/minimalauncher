@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_alarm_clock/flutter_alarm_clock.dart';
 import 'package:minimalauncher/pages/home_page.dart';
 import 'package:minimalauncher/pages/left_screen.dart';
 import 'package:minimalauncher/pages/right_screen.dart';
@@ -22,7 +21,7 @@ class Launcher extends StatefulWidget {
 }
 
 class _LauncherState extends State<Launcher> {
-  bool showWallpaper = true;
+  bool showWallpaper = false;
   Color selectedColor = Colors.white;
 
   final PageController _pageController = PageController(initialPage: 1);
@@ -37,7 +36,7 @@ class _LauncherState extends State<Launcher> {
   _loadPreferences() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      showWallpaper = prefs.getBool(prefsShowWallpaper) ?? true;
+      showWallpaper = prefs.getBool(prefsShowWallpaper) ?? false;
       int? colorValue = prefs.getInt(prefsSelectedColor);
       if (colorValue != null) {
         selectedColor = Color(colorValue);
@@ -47,6 +46,10 @@ class _LauncherState extends State<Launcher> {
 
   @override
   Widget build(BuildContext context) {
+    Brightness iconsBrightness =
+        ThemeData.estimateBrightnessForColor(selectedColor) == Brightness.dark
+            ? Brightness.light
+            : Brightness.dark;
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
@@ -57,7 +60,9 @@ class _LauncherState extends State<Launcher> {
           systemOverlayStyle: SystemUiOverlayStyle(
             systemNavigationBarColor:
                 showWallpaper ? Colors.transparent : selectedColor,
+            systemNavigationBarIconBrightness: iconsBrightness,
             statusBarColor: showWallpaper ? Colors.transparent : selectedColor,
+            statusBarIconBrightness: iconsBrightness,
           ),
         ),
         body: Builder(
@@ -68,7 +73,7 @@ class _LauncherState extends State<Launcher> {
                   // Swipe down
                   expandNotification();
                 } else if (details.primaryVelocity! < 0) {
-                  // TODO open search screen
+                  openAppDrawer(context);
                 }
               },
               onLongPress: () {
@@ -82,7 +87,6 @@ class _LauncherState extends State<Launcher> {
                 ).then((value) {
                   // Check if preferences have been changed
                   if (value == true) {
-                    print("yes");
                     setState(() {
                       _loadPreferences(); // Reload preferences to reflect changes in the clock
                     });
@@ -91,11 +95,10 @@ class _LauncherState extends State<Launcher> {
               },
               child: PageView(
                 controller: _pageController,
-                physics:
-                    CustomScrollPhysics(), // Apply custom physics for faster swiping
-                children: [
+                // physics: ,
+                children: const [
                   LeftScreen(),
-                  HomeScreen(), // Clock widget in HomeScreen
+                  HomeScreen(),
                   RightScreen(),
                 ],
               ),
@@ -103,6 +106,33 @@ class _LauncherState extends State<Launcher> {
           },
         ),
       ),
+    );
+  }
+
+  void openAppDrawer(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: selectedColor,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return SizedBox(
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Apps',
+                  style: TextStyle(
+                    color: textColor,
+                    fontSize: 20,
+                    fontFamily: fontNormal,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -116,26 +146,4 @@ class _LauncherState extends State<Launcher> {
   }
 
   static const MethodChannel _channel = MethodChannel('main_channel');
-}
-
-// Custom Scroll Physics to reduce swipe drag resistance (faster)
-class CustomScrollPhysics extends ScrollPhysics {
-  const CustomScrollPhysics({ScrollPhysics? parent}) : super(parent: parent);
-
-  @override
-  CustomScrollPhysics applyTo(ScrollPhysics? ancestor) {
-    return CustomScrollPhysics(parent: buildParent(ancestor));
-  }
-
-  // Reduce drag to make the page swipe faster
-  @override
-  double get dragStartDistanceMotionThreshold => 0.1; // React faster to swipes
-
-  @override
-  double frictionFactor(double overscrollFraction) {
-    return 0.0001; // Less friction for quicker swipe
-  }
-
-  @override
-  double get minFlingVelocity => 700.0; // Adjust velocity threshold if needed
 }

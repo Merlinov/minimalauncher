@@ -61,6 +61,7 @@ class _SettingsPageState extends State<SettingsPage> {
         });
       },
       child: Scaffold(
+        backgroundColor: selectedColor,
         appBar: AppBar(
           title: Text(
             'Settings',
@@ -68,6 +69,7 @@ class _SettingsPageState extends State<SettingsPage> {
               fontFamily: fontNormal,
             ),
           ),
+          backgroundColor: selectedColor,
           systemOverlayStyle: SystemUiOverlayStyle(
             systemNavigationBarColor:
                 showWallpaper ? Colors.transparent : selectedColor,

@@ -7,3 +7,5 @@ const String prefsShowWallpaper = 'showWallpaper';
 const String prefsSelectedColor = 'selectedColor';
 const String prefsTextColor = 'textColor';
 const String prefsIs24HourFormat = 'is24HourFormat';
+
+const String homeStatsSeperator = '   /   ';
