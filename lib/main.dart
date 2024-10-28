@@ -23,6 +23,7 @@ class Launcher extends StatefulWidget {
 class _LauncherState extends State<Launcher> {
   bool showWallpaper = false;
   Color selectedColor = Colors.white;
+  Color textColor = Colors.black;
 
   final PageController _pageController = PageController(initialPage: 1);
 
@@ -40,6 +41,10 @@ class _LauncherState extends State<Launcher> {
       int? colorValue = prefs.getInt(prefsSelectedColor);
       if (colorValue != null) {
         selectedColor = Color(colorValue);
+      }
+      int? textColorValue = prefs.getInt(prefsTextColor);
+      if (textColorValue != null) {
+        textColor = Color(textColorValue);
       }
     });
   }

@@ -27,8 +27,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void initState() {
-    super.initState();
-
     _getBatteryPercentage();
 
     refreshTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
@@ -38,6 +36,8 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     _loadPreferences();
+
+    super.initState();
   }
 
   @override
@@ -100,13 +100,7 @@ class _HomeScreenState extends State<HomeScreen> {
           if (await canLaunchUrlString(url)) {
             await launchUrlString(url);
           } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Could not launch calendar app.'),
-                duration: Duration(seconds: 2),
-                dismissDirection: DismissDirection.horizontal,
-              ),
-            );
+            showSnackBar('Cannot open calendar');
           }
         },
         child: Row(
@@ -247,6 +241,17 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  // HELPER FUNCTIONS ---------------------------------------------------------------------------
+  void showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: Duration(seconds: 2),
+        dismissDirection: DismissDirection.horizontal,
       ),
     );
   }

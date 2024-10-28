@@ -57,4 +57,25 @@ class MainActivity: FlutterActivity() {
             }
         }
     }
+
+    private fun changeLauncher() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            val intent = Intent(Settings.ACTION_HOME_SETTINGS)
+            startActivity(intent)
+        } else {
+            val intent = Intent(Settings.ACTION_SETTINGS)
+            startActivity(intent)
+        }
+    }
+
+    private fun searchGoogle(query: String) {
+        try {
+            val intent = Intent(Intent.ACTION_WEB_SEARCH)
+            intent.putExtra(SearchManager.QUERY, query)
+            intent.setPackage("com.google.android.googlequicksearchbox")
+            startActivity(intent)
+        } catch (e: Exception) {
+            // Log an error
+        }
+    }
 }

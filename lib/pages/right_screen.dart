@@ -10,8 +10,11 @@ class RightScreen extends StatefulWidget {
 class _RightScreenState extends State<RightScreen> {
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Text("Right"),
+    return SizedBox(
+      width: MediaQuery.of(context).size.width * 0.8,
+      child: Column(
+        children: [],
+      ),
     );
   }
 }
