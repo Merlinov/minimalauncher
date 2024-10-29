@@ -46,6 +46,7 @@ dependencies:
   permission_handler: ^11.3.1
   weather: ^3.1.1
   geolocator: ^13.0.1
+  device_apps: ^2.2.0
 
 dev_dependencies:
   flutter_test:

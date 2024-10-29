@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_wallpaper_manager/flutter_wallpaper_manager.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:minimalauncher/helper/app_info.dart';
+import 'package:minimalauncher/pages/widgets/calendar_view.dart';
 import 'package:minimalauncher/variables/strings.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -23,6 +25,7 @@ class _LeftScreenState extends State<LeftScreen> {
   late SharedPreferences _prefs;
   Color textColor = Colors.black;
   Color selectedColor = Colors.white;
+  Color accentColor = Colors.blue[200]!;
 
   String WEATHERMAP_API_KEY = "";
   String _temperature = "--";
@@ -43,6 +46,7 @@ class _LeftScreenState extends State<LeftScreen> {
     setState(() {
       selectedColor = Color(_prefs.getInt(prefsSelectedColor)!);
       textColor = Color(_prefs.getInt(prefsTextColor)!);
+      accentColor = Color(_prefs.getInt(prefsAccentColor)!);
 
       WEATHERMAP_API_KEY = _prefs.getString(prefsWeatherApiKey) ?? "";
       _temperature = _prefs.getString(prefsWeatherTemp) ?? "--";
@@ -73,6 +77,16 @@ class _LeftScreenState extends State<LeftScreen> {
           SizedBox(height: MediaQuery.of(context).size.height * 0.02),
           temperatureWidget(context),
           SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+          CustomCalendarView(
+            selectedDate: DateTime.now(),
+            bgColor: selectedColor,
+            textColor: textColor,
+            accentColor: accentColor,
+            eventDates: [
+              DateTime.now().subtract(const Duration(days: 1)),
+              DateTime.now().add(const Duration(days: 2)),
+            ],
+          ),
         ],
       ),
     );

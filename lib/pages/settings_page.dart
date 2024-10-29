@@ -66,9 +66,11 @@ class _SettingsPageState extends State<SettingsPage> {
           title: Text(
             'Settings',
             style: TextStyle(
+              color: textColor,
               fontFamily: fontNormal,
             ),
           ),
+          foregroundColor: textColor,
           backgroundColor: selectedColor,
           systemOverlayStyle: SystemUiOverlayStyle(
             systemNavigationBarColor:
@@ -84,6 +86,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   'Show Wallpaper',
                   style: TextStyle(
                     fontFamily: fontNormal,
+                    color: textColor,
                   ),
                 ),
                 value: showWallpaper,
@@ -103,6 +106,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       Text(
                         'Background Color:',
                         style: TextStyle(
+                          color: textColor,
                           fontFamily: fontNormal,
                         ),
                       ),
@@ -128,6 +132,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       ? '24-Hour Time Format'
                       : '12-Hour Time Format',
                   style: TextStyle(
+                    color: textColor,
                     fontFamily: fontNormal,
                   ),
                 ),
@@ -148,6 +153,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     Text(
                       'Text Color:',
                       style: TextStyle(
+                        color: textColor,
                         fontFamily: fontNormal,
                       ),
                     ),
@@ -182,6 +188,7 @@ class _SettingsPageState extends State<SettingsPage> {
           title: Text(
             'Pick a color',
             style: TextStyle(
+              color: textColor,
               fontFamily: fontNormal,
             ),
           ),

@@ -6,6 +6,7 @@ const String nativeExpandNotification = 'expandNotis';
 const String prefsShowWallpaper = 'showWallpaper';
 const String prefsSelectedColor = 'selectedColor';
 const String prefsTextColor = 'textColor';
+const String prefsAccentColor = 'accentColor';
 const String prefsIs24HourFormat = 'is24HourFormat';
 const String prefsWeatherApiKey = 'weatherapi';
 const String prefsWeatherTemp = 'tempr';
