@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_wallpaper_manager/flutter_wallpaper_manager.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:minimalauncher/helper/app_info.dart';
 import 'package:minimalauncher/pages/widgets/calendar_view.dart';
 import 'package:minimalauncher/variables/strings.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -76,17 +75,9 @@ class _LeftScreenState extends State<LeftScreen> {
           quickSettings(context),
           SizedBox(height: MediaQuery.of(context).size.height * 0.02),
           temperatureWidget(context),
+          Expanded(child: Container()),
+          calendar(),
           SizedBox(height: MediaQuery.of(context).size.height * 0.02),
-          CustomCalendarView(
-            selectedDate: DateTime.now(),
-            bgColor: selectedColor,
-            textColor: textColor,
-            accentColor: accentColor,
-            eventDates: [
-              DateTime.now().subtract(const Duration(days: 1)),
-              DateTime.now().add(const Duration(days: 2)),
-            ],
-          ),
         ],
       ),
     );
@@ -237,6 +228,20 @@ class _LeftScreenState extends State<LeftScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget calendar() {
+    return CustomCalendarView(
+      initialDate: DateTime.now(),
+      bgColor: selectedColor,
+      textColor: textColor,
+      accentColor: accentColor,
+      fontFamily: fontNormal,
+      eventDates: [
+        DateTime.now().subtract(const Duration(days: 1)),
+        DateTime.now().add(const Duration(days: 2)),
+      ],
     );
   }
 

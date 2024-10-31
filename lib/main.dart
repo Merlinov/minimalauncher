@@ -1,13 +1,17 @@
 // ignore_for_file: prefer_const_constructors
 
+import 'package:device_apps/device_apps.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:installed_apps/app_info.dart';
 import 'package:minimalauncher/pages/home_page.dart';
 import 'package:minimalauncher/pages/left_screen.dart';
 import 'package:minimalauncher/pages/right_screen.dart';
 import 'package:minimalauncher/pages/settings_page.dart';
+import 'package:minimalauncher/pages/widgets/app_drawer.dart';
 import 'package:minimalauncher/variables/strings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:installed_apps/installed_apps.dart';
 
 void main() {
   runApp(Launcher());
@@ -114,31 +118,22 @@ class _LauncherState extends State<Launcher> {
     );
   }
 
-  void openAppDrawer(BuildContext context) {
-    showModalBottomSheet<void>(
+  void openAppDrawer(BuildContext context) async {
+    // Open the app drawer and wait for a package name to be selected
+    final String? selectedPackage = await showModalBottomSheet<String>(
       context: context,
-      backgroundColor: selectedColor,
       isScrollControlled: true,
-      builder: (BuildContext context) {
-        return SizedBox(
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Apps',
-                  style: TextStyle(
-                    color: textColor,
-                    fontSize: 20,
-                    fontFamily: fontNormal,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
+      builder: (BuildContext context) => AppDrawer(
+        autoFocusSearch: true,
+        bgColor: selectedColor,
+        textColor: textColor,
+      ),
     );
+
+    if (selectedPackage != null) {
+      HapticFeedback.mediumImpact();
+      DeviceApps.openApp(selectedPackage);
+    }
   }
 
   // native methods----------------------------------------------------------------------------------------------------------
