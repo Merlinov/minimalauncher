@@ -1,11 +1,14 @@
 // ignore_for_file: prefer_const_constructors
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:battery_plus/battery_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_alarm_clock/flutter_alarm_clock.dart';
+import 'package:installed_apps/installed_apps.dart';
 import 'package:intl/intl.dart';
+import 'package:minimalauncher/pages/widgets/app_drawer.dart';
 import 'package:minimalauncher/variables/strings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -22,11 +25,14 @@ Color textColor = Colors.black;
 
 class _HomeScreenState extends State<HomeScreen> {
   int _batteryLevel = 0;
-
   late Timer refreshTimer;
+
+  List<AppInfo> favoriteApps = [];
 
   @override
   void initState() {
+    _loadPreferences();
+    _loadFavoriteApps();
     _getBatteryPercentage();
 
     refreshTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
@@ -34,8 +40,6 @@ class _HomeScreenState extends State<HomeScreen> {
         _getBatteryPercentage();
       });
     });
-
-    _loadPreferences();
 
     super.initState();
   }
@@ -59,6 +63,19 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  Future<void> _loadFavoriteApps() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? cachedFavorites = prefs.getString('favoriteApps');
+
+    if (cachedFavorites != null) {
+      List<dynamic> jsonFavorites = jsonDecode(cachedFavorites);
+      setState(() {
+        favoriteApps =
+            jsonFavorites.map((app) => AppInfo.fromJson(app)).toList();
+      });
+    }
+  }
+
   void _getBatteryPercentage() async {
     int battery = await Battery().batteryLevel;
 
@@ -79,8 +96,8 @@ class _HomeScreenState extends State<HomeScreen> {
         SizedBox(height: screenHeight * 0.025),
         statsWidget(),
         SizedBox(height: screenHeight * 0.075),
-        events("NOW (2:30 PM)", "Finish the launcher app."),
-        events("TOMORROW (5:25 AM)", "Complete the presentation."),
+        events("NOW (2:30 PM)", "finish the launcher app."),
+        events("TOMORROW (5:25 AM)", "complete the presentation."),
         Expanded(child: Container()),
         homeScreenApps(),
         Expanded(child: Container()),
@@ -100,21 +117,31 @@ class _HomeScreenState extends State<HomeScreen> {
           if (await canLaunchUrlString(url)) {
             await launchUrlString(url);
           } else {
-            showSnackBar('Cannot open calendar');
+            showSnackBar('cannot open calendar');
           }
         },
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Text(
-              "${DateFormat.d().format(DateTime.now())} ${DateFormat.MMM().format(DateTime.now()).toUpperCase()}$homeStatsSeperator${DateFormat.E().format(DateTime.now()).toUpperCase()}$homeStatsSeperator$_batteryLevel%",
-              style: TextStyle(
-                color: textColor,
-                fontSize: 16,
-                fontFamily: fontNormal,
+        child: RichText(
+          text: TextSpan(
+            children: [
+              TextSpan(
+                text:
+                    "${DateFormat.d().format(DateTime.now())} ${DateFormat.MMM().format(DateTime.now()).toLowerCase()}$homeStatsSeperator${DateFormat.EEEE().format(DateTime.now()).toLowerCase()}$homeStatsSeperator$_batteryLevel",
+                style: TextStyle(
+                  color: textColor,
+                  fontSize: 16,
+                  fontFamily: fontNormal,
+                ),
               ),
-            )
-          ],
+              TextSpan(
+                text: '%',
+                style: TextStyle(
+                  color: textColor,
+                  fontSize: 10,
+                  fontFamily: fontNormal,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -169,54 +196,33 @@ class _HomeScreenState extends State<HomeScreen> {
       width: MediaQuery.of(context).size.width * 0.8,
       child: Opacity(
         opacity: 0.8,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "WhatsApp",
-              style: TextStyle(
-                color: textColor,
-                fontSize: 20,
-                fontFamily: fontNormal,
+        child: ListView.builder(
+          itemCount: favoriteApps.length,
+          physics: NeverScrollableScrollPhysics(),
+          shrinkWrap: true,
+          itemBuilder: (context, index) {
+            return GestureDetector(
+              onTap: () {
+                InstalledApps.startApp(favoriteApps[index].packageName);
+              },
+              onLongPress: () {
+                // TODO long press favorite app (reorder)
+              },
+              child: Row(
+                children: [
+                  Text(
+                    favoriteApps[index].name.toLowerCase(),
+                    style: TextStyle(
+                      color: textColor,
+                      fontSize: 21,
+                      fontFamily: fontNormal,
+                    ),
+                  ),
+                  Container(height: 2.0),
+                ],
               ),
-            ),
-            Container(height: 2.0),
-            Text(
-              "YouTube",
-              style: TextStyle(
-                color: textColor,
-                fontSize: 20,
-                fontFamily: fontNormal,
-              ),
-            ),
-            Container(height: 2.0),
-            Text(
-              "Camera",
-              style: TextStyle(
-                color: textColor,
-                fontSize: 20,
-                fontFamily: fontNormal,
-              ),
-            ),
-            Container(height: 2.0),
-            Text(
-              "LPU Online",
-              style: TextStyle(
-                color: textColor,
-                fontSize: 20,
-                fontFamily: fontNormal,
-              ),
-            ),
-            Container(height: 2.0),
-            Text(
-              "Academia GU",
-              style: TextStyle(
-                color: textColor,
-                fontSize: 20,
-                fontFamily: fontNormal,
-              ),
-            ),
-          ],
+            );
+          },
         ),
       ),
     );

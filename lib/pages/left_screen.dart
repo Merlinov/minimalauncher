@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
@@ -26,10 +28,12 @@ class _LeftScreenState extends State<LeftScreen> {
   Color selectedColor = Colors.white;
   Color accentColor = Colors.blue[200]!;
 
+  // ignore: non_constant_identifier_names
   String WEATHERMAP_API_KEY = "";
   String _temperature = "--";
-  String _weatherLocation = "Location";
-  String _weatherSummary = "Summary";
+  String _weatherLocation = "location";
+  String _weatherSummary =
+      "the summary will appear here (click the widget to enter your API key)";
 
   @override
   void initState() {
@@ -42,6 +46,16 @@ class _LeftScreenState extends State<LeftScreen> {
   _loadPreferences() async {
     _prefs = await SharedPreferences.getInstance();
 
+    if (!_prefs.containsKey(prefsAccentColor)) {
+      _prefs.setInt(prefsAccentColor, accentColor.value);
+    }
+    if (!_prefs.containsKey(prefsSelectedColor)) {
+      _prefs.setInt(prefsSelectedColor, selectedColor.value);
+    }
+    if (!_prefs.containsKey(prefsTextColor)) {
+      _prefs.setInt(prefsTextColor, textColor.value);
+    }
+
     setState(() {
       selectedColor = Color(_prefs.getInt(prefsSelectedColor)!);
       textColor = Color(_prefs.getInt(prefsTextColor)!);
@@ -49,8 +63,8 @@ class _LeftScreenState extends State<LeftScreen> {
 
       WEATHERMAP_API_KEY = _prefs.getString(prefsWeatherApiKey) ?? "";
       _temperature = _prefs.getString(prefsWeatherTemp) ?? "--";
-      _weatherSummary = _prefs.getString(prefsWeatherDesc) ?? "Summary";
-      _weatherLocation = _prefs.getString(prefsWeatherLocation) ?? "Location";
+      _weatherSummary = _prefs.getString(prefsWeatherDesc) ?? "summary";
+      _weatherLocation = _prefs.getString(prefsWeatherLocation) ?? "location";
     });
   }
 
@@ -73,13 +87,21 @@ class _LeftScreenState extends State<LeftScreen> {
       child: Column(
         children: [
           quickSettings(context),
-          SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+          divider(),
           temperatureWidget(context),
+          divider(),
           Expanded(child: Container()),
+          divider(),
           calendar(),
-          SizedBox(height: MediaQuery.of(context).size.height * 0.02),
         ],
       ),
+    );
+  }
+
+  Widget divider() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Divider(color: textColor.withOpacity(0.2)),
     );
   }
 
@@ -92,7 +114,7 @@ class _LeftScreenState extends State<LeftScreen> {
             child: Container(
               width: MediaQuery.of(buildContext).size.width * 0.44,
               decoration: BoxDecoration(
-                color: textColor.withOpacity(0.05),
+                // color: textColor.withOpacity(0.05),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Row(
@@ -127,7 +149,7 @@ class _LeftScreenState extends State<LeftScreen> {
             child: Container(
               width: MediaQuery.of(buildContext).size.width * 0.44,
               decoration: BoxDecoration(
-                color: textColor.withOpacity(0.05),
+                // color: textColor.withOpacity(0.05),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Row(
@@ -174,12 +196,8 @@ class _LeftScreenState extends State<LeftScreen> {
         HapticFeedback.mediumImpact();
         searchGoogle("weather");
       },
-      child: Container(
-        padding: const EdgeInsets.all(16.0),
-        decoration: BoxDecoration(
-          color: textColor.withOpacity(0.05),
-          borderRadius: BorderRadius.circular(16.0),
-        ),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
         child: Row(
           children: [
             Icon(
@@ -191,18 +209,33 @@ class _LeftScreenState extends State<LeftScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  "$_temperature°C",
-                  style: TextStyle(
-                    fontFamily: fontNormal,
-                    fontSize: 24,
-                    fontWeight: FontWeight.w500,
-                    color: textColor,
-                    height: 1.25,
+                RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: _temperature,
+                        style: TextStyle(
+                          fontFamily: fontNormal,
+                          fontSize: 26,
+                          fontWeight: FontWeight.w500,
+                          color: textColor,
+                          height: 1.25,
+                        ),
+                      ),
+                      TextSpan(
+                        text: "°C",
+                        style: TextStyle(
+                          fontFamily: fontNormal,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: textColor,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 Text(
-                  _weatherLocation,
+                  _weatherLocation.toLowerCase(),
                   style: TextStyle(
                     fontFamily: fontNormal,
                     fontSize: 14,
@@ -257,7 +290,7 @@ class _LeftScreenState extends State<LeftScreen> {
       ScaffoldMessenger.of(buildContext).showSnackBar(
         const SnackBar(
           content: Text(
-            'No wallpaper selected',
+            'no wallpaper selected',
           ),
         ),
       );
@@ -289,23 +322,20 @@ class _LeftScreenState extends State<LeftScreen> {
       );
 
       // Get and format the weather description to title case
-      String description = (weather.weatherDescription ?? "Clear")
-          .split(' ')
-          .map((word) => word[0].toUpperCase() + word.substring(1))
-          .join(' ');
+      String description = (weather.weatherDescription ?? "Clear");
 
       // Collect additional weather details: feels like, min, max
       String feelsLike = weather.tempFeelsLike?.celsius?.toInt().toString() ??
           weather.temperature!.celsius!.toInt().toString();
-      String minTemp = weather.tempMin?.celsius?.toInt().toString() ??
-          weather.temperature!.celsius!.toInt().toString();
-      String maxTemp = weather.tempMax?.celsius?.toInt().toString() ??
-          weather.temperature!.celsius!.toInt().toString();
+      String minTemp = weather.tempMin?.celsius?.toInt().toString() ?? '-';
+      String maxTemp = weather.tempMax?.celsius?.toInt().toString() ?? '-';
       int humidity = weather.humidity != null ? weather.humidity!.toInt() : 0;
 
       // Create a detailed weather summary
-      String weatherSummary = "$description. Feels Like: $feelsLike°C.\n"
-          "Min: $minTemp°C, Max: $maxTemp°C. Humidity: $humidity%.";
+      String weatherSummary = "$description  •  feels like $feelsLike°C.\n"
+          "min $minTemp°C  •  max $maxTemp°C  •  humidity $humidity%\n"
+          "sunrise ${weather.sunrise!.toString().substring(11, 16)}  •  "
+          "sunset ${weather.sunset!.toString().substring(11, 16)}";
 
       setState(() {
         savePrefs(

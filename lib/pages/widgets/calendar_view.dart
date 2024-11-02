@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:minimalauncher/variables/strings.dart';
 
 class CustomCalendarView extends StatefulWidget {
   final DateTime initialDate;
@@ -51,14 +52,11 @@ class _CustomCalendarViewState extends State<CustomCalendarView> {
         DateUtils.getDaysInMonth(selectedDate.year, selectedDate.month);
     final firstDayOfMonth = DateTime(selectedDate.year, selectedDate.month, 1);
     final startWeekday = firstDayOfMonth.weekday % 7;
-    final monthName = DateFormat('MMMM yyyy').format(selectedDate);
+    final monthName =
+        "${DateFormat('MMMM').format(selectedDate).toLowerCase()} '${DateFormat('yy').format(selectedDate)}";
 
-    return Container(
-      padding: const EdgeInsets.only(bottom: 16, top: 10, left: 10, right: 10),
-      decoration: BoxDecoration(
-        color: widget.textColor.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(16),
-      ),
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -68,9 +66,9 @@ class _CustomCalendarViewState extends State<CustomCalendarView> {
             children: [
               IconButton(
                 icon: Icon(
-                  Icons.arrow_back_rounded,
+                  Icons.arrow_back_ios_rounded,
                   color: widget.textColor,
-                  size: 28,
+                  size: 24,
                 ),
                 onPressed: () {
                   HapticFeedback.lightImpact();
@@ -88,17 +86,17 @@ class _CustomCalendarViewState extends State<CustomCalendarView> {
                   monthName,
                   style: TextStyle(
                     fontSize: 20,
-                    fontFamily: widget.fontFamily,
-                    fontWeight: FontWeight.w500,
+                    fontFamily: fontNormal,
+                    fontWeight: FontWeight.w400,
                     color: widget.textColor,
                   ),
                 ),
               ),
               IconButton(
                 icon: Icon(
-                  Icons.arrow_forward_rounded,
+                  Icons.arrow_forward_ios_rounded,
                   color: widget.textColor,
-                  size: 28,
+                  size: 24,
                 ),
                 onPressed: () {
                   HapticFeedback.lightImpact();
@@ -107,19 +105,19 @@ class _CustomCalendarViewState extends State<CustomCalendarView> {
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 5),
 
           // Days of the Week Header
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+            children: ["sun", "mon", "tue", "wed", "thu", "fri", "sat"]
                 .map((day) => Expanded(
                       child: Center(
                         child: Text(
                           day,
                           style: TextStyle(
-                            fontSize: 16,
-                            fontFamily: widget.fontFamily,
+                            fontSize: 14,
+                            fontFamily: fontNormal,
                             color: widget.textColor.withOpacity(0.5),
                           ),
                         ),
@@ -127,7 +125,7 @@ class _CustomCalendarViewState extends State<CustomCalendarView> {
                     ))
                 .toList(),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 5),
 
           // Calendar Days
           Table(
@@ -168,7 +166,7 @@ class _CustomCalendarViewState extends State<CustomCalendarView> {
               '$day',
               style: TextStyle(
                 fontSize: 16,
-                fontFamily: widget.fontFamily,
+                fontFamily: fontNormal,
                 color: hasEvent
                     ? widget.accentColor
                     : widget.textColor.withOpacity(0.8),
