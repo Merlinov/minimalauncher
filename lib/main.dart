@@ -31,6 +31,9 @@ class _LauncherState extends State<Launcher> {
 
   final PageController _pageController = PageController(initialPage: 1);
 
+  final GlobalKey<HomeScreenState> _homeScreenKey =
+      GlobalKey<HomeScreenState>();
+
   @override
   void initState() {
     super.initState();
@@ -103,9 +106,9 @@ class _LauncherState extends State<Launcher> {
               child: PageView(
                 controller: _pageController,
                 // physics: ,
-                children: const [
+                children: [
                   LeftScreen(),
-                  HomeScreen(),
+                  HomeScreen(key: _homeScreenKey),
                   RightScreen(),
                 ],
               ),
@@ -132,6 +135,12 @@ class _LauncherState extends State<Launcher> {
       HapticFeedback.mediumImpact();
       DeviceApps.openApp(selectedPackage);
     }
+
+    _refreshScreens();
+  }
+
+  void _refreshScreens() {
+    _homeScreenKey.currentState?.refresh();
   }
 
   // native methods----------------------------------------------------------------------------------------------------------

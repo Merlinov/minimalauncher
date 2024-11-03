@@ -99,6 +99,14 @@ class _SettingsPageState extends State<SettingsPage> {
                   _savePreferences();
                 },
               ),
+              Text(
+                "Changing the 'Show Wallpaper' setting will require you to restart the app.",
+                style: TextStyle(
+                  color: textColor.withOpacity(0.5),
+                  fontFamily: fontNormal,
+                  fontSize: 12.0,
+                ),
+              ),
               if (!showWallpaper)
                 ListTile(
                   title: Row(
@@ -171,6 +179,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                 ),
               ),
+              Divider(),
             ],
           ),
         ),

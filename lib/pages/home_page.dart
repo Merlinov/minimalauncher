@@ -5,6 +5,7 @@ import 'dart:convert';
 
 import 'package:battery_plus/battery_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_alarm_clock/flutter_alarm_clock.dart';
 import 'package:installed_apps/installed_apps.dart';
 import 'package:intl/intl.dart';
@@ -17,18 +18,26 @@ class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<HomeScreen> createState() => HomeScreenState();
 }
 
 bool is24HourFormat = false;
 Color textColor = Colors.black;
 Color selectedColor = Colors.white;
 
-class _HomeScreenState extends State<HomeScreen> {
+class HomeScreenState extends State<HomeScreen> {
   int _batteryLevel = 0;
   late Timer refreshTimer;
 
   List<AppInfo> favoriteApps = [];
+
+  void refresh() {
+    setState(() {
+      _loadPreferences();
+      _loadFavoriteApps();
+      // TODO load events ?
+    });
+  }
 
   @override
   void initState() {
@@ -214,9 +223,11 @@ class _HomeScreenState extends State<HomeScreen> {
           itemBuilder: (context, index) {
             return GestureDetector(
               onTap: () {
+                HapticFeedback.mediumImpact();
                 InstalledApps.startApp(favoriteApps[index].packageName);
               },
               onLongPress: () {
+                HapticFeedback.heavyImpact();
                 editHomeScreenApp(context, index);
               },
               child: Row(
@@ -273,11 +284,11 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void editHomeScreenApp(BuildContext context, int index) {
+  void editHomeScreenApp(BuildContext context, int index) async {
     TextEditingController nameController =
         TextEditingController(text: favoriteApps[index].name);
 
-    showModalBottomSheet(
+    await showModalBottomSheet(
       context: context,
       backgroundColor: selectedColor,
       builder: (context) {
@@ -290,73 +301,145 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   TextField(
                     controller: nameController,
-                    decoration: InputDecoration(labelText: 'Rename App'),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 8.0, horizontal: 12.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        ElevatedButton(
-                          style: ButtonStyle(
-                            backgroundColor: WidgetStatePropertyAll(textColor),
-                            foregroundColor:
-                                WidgetStatePropertyAll(selectedColor),
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              favoriteApps[index].name = nameController.text;
-                            });
-                            _saveFavoriteApps();
-                            setState(() {
-                              _loadPreferences();
-                            });
-                            Navigator.pop(context);
-                          },
-                          child: Text('Save'),
-                        ),
-                        ElevatedButton(
-                          style: ButtonStyle(
-                            backgroundColor: WidgetStatePropertyAll(textColor),
-                            foregroundColor:
-                                WidgetStatePropertyAll(selectedColor),
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              favoriteApps.removeAt(index);
-                            });
-                            _saveFavoriteApps();
-                            setState(() {
-                              _loadPreferences();
-                            });
-                            Navigator.pop(context);
-                          },
-                          child: Text('Remove from Favorites'),
-                        ),
-                      ],
+                    decoration: InputDecoration(
+                      labelText: 'Rename App',
+                      labelStyle: TextStyle(
+                        color: textColor,
+                        fontFamily: fontNormal,
+                      ),
                     ),
                   ),
-                  Expanded(
-                    child: ReorderableListView.builder(
-                      itemCount: favoriteApps.length,
-                      onReorder: (oldIndex, newIndex) {
-                        setState(() {
-                          if (newIndex > oldIndex) newIndex -= 1;
-                          final item = favoriteApps.removeAt(oldIndex);
-                          favoriteApps.insert(newIndex, item);
-                        });
-                        _saveFavoriteApps();
-                      },
-                      itemBuilder: (context, i) {
-                        return ListTile(
-                          key: ValueKey(favoriteApps[i].packageName),
-                          title: Text(favoriteApps[i].name),
-                          trailing: Icon(Icons.drag_handle_rounded),
-                        );
-                      },
+                  const SizedBox(height: 16.0),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      ElevatedButton(
+                        style: ButtonStyle(
+                          backgroundColor: WidgetStatePropertyAll(textColor),
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            favoriteApps[index].name = nameController.text;
+                          });
+                          _saveFavoriteApps();
+                          setState(() {
+                            _loadPreferences();
+                          });
+                          Navigator.pop(context);
+                        },
+                        child: Text(
+                          'Save',
+                          style: TextStyle(
+                            color: selectedColor,
+                            fontFamily: fontNormal,
+                          ),
+                        ),
+                      ),
+                      ElevatedButton(
+                        style: ButtonStyle(
+                          backgroundColor: WidgetStatePropertyAll(textColor),
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            favoriteApps.removeAt(index);
+                          });
+                          _saveFavoriteApps();
+                          setState(() {
+                            _loadPreferences();
+                          });
+                          Navigator.pop(context);
+                        },
+                        child: Text(
+                          'Remove from Favorites',
+                          style: TextStyle(
+                            color: selectedColor,
+                            fontFamily: fontNormal,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 32.0),
+                  ElevatedButton(
+                    style: ButtonStyle(
+                      backgroundColor: WidgetStatePropertyAll(textColor),
+                    ),
+                    onPressed: () async {
+                      Navigator.pop(context);
+                      await showModalBottomSheet(
+                        context: context,
+                        backgroundColor: selectedColor,
+                        builder: (context) {
+                          return StatefulBuilder(
+                            builder: (context, setState) {
+                              return Column(
+                                children: [
+                                  SizedBox(height: 16),
+                                  Text(
+                                    "Reorder Apps:",
+                                    style: TextStyle(
+                                      fontFamily: fontNormal,
+                                      color: textColor,
+                                      fontSize: 18.0,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  SizedBox(height: 8),
+                                  Expanded(
+                                    child: ReorderableListView.builder(
+                                      itemCount: favoriteApps.length,
+                                      onReorderStart: (index) {
+                                        HapticFeedback.mediumImpact();
+                                      },
+                                      onReorder: (oldIndex, newIndex) async {
+                                        setState(() {
+                                          if (newIndex > oldIndex) {
+                                            newIndex -= 1;
+                                          }
+                                          final item =
+                                              favoriteApps.removeAt(oldIndex);
+                                          favoriteApps.insert(newIndex, item);
+                                        });
+                                        await _saveFavoriteApps();
+                                        setState(() {
+                                          _loadFavoriteApps();
+                                        });
+                                      },
+                                      itemBuilder: (context, i) {
+                                        return ListTile(
+                                          key: ValueKey(
+                                              favoriteApps[i].packageName),
+                                          title: Text(
+                                            favoriteApps[i].name,
+                                            style: TextStyle(
+                                              color: textColor,
+                                              fontFamily: fontNormal,
+                                            ),
+                                          ),
+                                          trailing: Icon(
+                                            Icons.drag_handle_rounded,
+                                            color: textColor,
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        },
+                      );
+                    },
+                    child: Text(
+                      'Reorder Apps',
+                      style: TextStyle(
+                        color: selectedColor,
+                        fontFamily: fontNormal,
+                      ),
                     ),
                   ),
+                  Expanded(child: Container()),
                 ],
               ),
             );
@@ -364,6 +447,10 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       },
     );
+
+    setState(() {
+      _loadFavoriteApps();
+    });
   }
 }
 
