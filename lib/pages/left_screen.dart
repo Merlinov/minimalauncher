@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_wallpaper_manager/flutter_wallpaper_manager.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:interactive_slider/interactive_slider.dart';
 import 'package:minimalauncher/pages/settings_page.dart';
 import 'package:minimalauncher/pages/widgets/calendar_view.dart';
 import 'package:minimalauncher/variables/strings.dart';
@@ -108,72 +109,102 @@ class _LeftScreenState extends State<LeftScreen> {
   }
 
   Widget quickSettings(BuildContext buildContext) {
+    double borderRadius = 18.0;
     return SizedBox(
       height: MediaQuery.of(buildContext).size.height * 0.1,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          GestureDetector(
-            child: Icon(
-              Icons.image_rounded,
-              color: textColor,
-              size: 36,
+          Container(
+            decoration: BoxDecoration(
+              color: textColor.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(borderRadius),
             ),
-            onTap: () {
-              HapticFeedback.mediumImpact();
-              _changeWallpaper(context);
-            },
+            padding: const EdgeInsets.all(8.0),
+            child: GestureDetector(
+              child: Icon(
+                Icons.wallpaper_rounded,
+                size: 36,
+                color: textColor.withOpacity(0.9),
+              ),
+              onTap: () {
+                HapticFeedback.mediumImpact();
+                _changeWallpaper(context);
+              },
+            ),
           ),
-          GestureDetector(
-            child: Icon(
-              Icons.rocket_rounded,
-              color: textColor,
-              size: 36,
+          Container(
+            decoration: BoxDecoration(
+              color: textColor.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(borderRadius),
             ),
-            onTap: () {
-              HapticFeedback.mediumImpact();
-              changeLauncher();
-            },
+            padding: const EdgeInsets.all(8.0),
+            child: GestureDetector(
+              child: Icon(
+                Icons.rocket_rounded,
+                color: textColor.withOpacity(0.9),
+                size: 36,
+              ),
+              onTap: () {
+                HapticFeedback.mediumImpact();
+                changeLauncher();
+              },
+            ),
           ),
-          GestureDetector(
-            child: Icon(
-              Icons.settings_suggest_rounded,
-              color: textColor,
-              size: 36,
+          Container(
+            decoration: BoxDecoration(
+              color: textColor.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(borderRadius),
             ),
-            onTap: () {
-              HapticFeedback.mediumImpact();
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => SettingsPage(),
-                ),
-              ).then((value) {
-                // Check if preferences have been changed
-                if (value == true) {
-                  setState(() {
-                    _loadPreferences(); // Reload preferences to reflect changes in the clock
-                  });
-                }
-              });
-            },
+            padding: const EdgeInsets.all(8.0),
+            child: GestureDetector(
+              child: Icon(
+                Icons.settings_suggest_rounded,
+                color: textColor.withOpacity(0.9),
+                size: 36,
+              ),
+              onTap: () {
+                HapticFeedback.mediumImpact();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => SettingsPage(),
+                  ),
+                ).then((value) {
+                  // Check if preferences have been changed
+                  if (value == true) {
+                    setState(() {
+                      _loadPreferences(); // Reload preferences to reflect changes in the clock
+                    });
+                  }
+                });
+              },
+            ),
           ),
-          GestureDetector(
-            child: Icon(
-              Icons.settings_rounded,
-              color: textColor,
-              size: 36,
+          Container(
+            decoration: BoxDecoration(
+              color: textColor.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(borderRadius),
             ),
-            onTap: () async {
-              HapticFeedback.mediumImpact();
+            padding: const EdgeInsets.all(8.0),
+            child: GestureDetector(
+              child: Icon(
+                Icons.settings_rounded,
+                color: textColor.withOpacity(0.9),
+                size: 36,
+              ),
+              onTap: () async {
+                HapticFeedback.mediumImpact();
 
-              const intent = AndroidIntent(action: 'android.settings.SETTINGS');
-              try {
-                await intent.launch();
-              } catch (e) {
-                showSnackBar(e.toString());
-              }
-            },
+                const intent =
+                    AndroidIntent(action: 'android.settings.SETTINGS');
+                try {
+                  await intent.launch();
+                } catch (e) {
+                  showSnackBar(e.toString());
+                }
+              },
+            ),
           ),
         ],
       ),
@@ -199,7 +230,7 @@ class _LeftScreenState extends State<LeftScreen> {
             children: [
               Icon(
                 Icons.thermostat_rounded,
-                color: textColor,
+                color: textColor.withOpacity(0.9),
                 size: 36,
               ),
               Container(width: 10),
@@ -266,7 +297,7 @@ class _LeftScreenState extends State<LeftScreen> {
     return CustomCalendarView(
       initialDate: DateTime.now(),
       bgColor: selectedColor,
-      textColor: textColor,
+      textColor: textColor.withOpacity(0.8),
       accentColor: accentColor,
       fontFamily: fontNormal,
       eventDates: [

@@ -67,7 +67,7 @@ class _CustomCalendarViewState extends State<CustomCalendarView> {
               IconButton(
                 icon: Icon(
                   Icons.arrow_back_ios_rounded,
-                  color: widget.textColor,
+                  color: widget.textColor.withOpacity(0.5),
                   size: 24,
                 ),
                 onPressed: () {
@@ -95,7 +95,7 @@ class _CustomCalendarViewState extends State<CustomCalendarView> {
               IconButton(
                 icon: Icon(
                   Icons.arrow_forward_ios_rounded,
-                  color: widget.textColor,
+                  color: widget.textColor.withOpacity(0.5),
                   size: 24,
                 ),
                 onPressed: () {
@@ -110,19 +110,21 @@ class _CustomCalendarViewState extends State<CustomCalendarView> {
           // Days of the Week Header
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: ["sun", "mon", "tue", "wed", "thu", "fri", "sat"]
-                .map((day) => Expanded(
-                      child: Center(
-                        child: Text(
-                          day,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontFamily: fontNormal,
-                            color: widget.textColor.withOpacity(0.5),
-                          ),
+            children: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+                .map(
+                  (day) => Expanded(
+                    child: Center(
+                      child: Text(
+                        day,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontFamily: fontNormal,
+                          color: widget.textColor.withOpacity(0.5),
                         ),
                       ),
-                    ))
+                    ),
+                  ),
+                )
                 .toList(),
           ),
           const SizedBox(height: 5),
@@ -167,9 +169,7 @@ class _CustomCalendarViewState extends State<CustomCalendarView> {
               style: TextStyle(
                 fontSize: 16,
                 fontFamily: fontNormal,
-                color: hasEvent
-                    ? widget.accentColor
-                    : widget.textColor.withOpacity(0.8),
+                color: hasEvent ? widget.accentColor : widget.textColor,
               ),
             ),
           ),

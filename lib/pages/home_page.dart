@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_alarm_clock/flutter_alarm_clock.dart';
 import 'package:installed_apps/installed_apps.dart';
+import 'package:interactive_slider/interactive_slider.dart';
 import 'package:intl/intl.dart';
 import 'package:minimalauncher/pages/widgets/app_drawer.dart';
 import 'package:minimalauncher/variables/strings.dart';
@@ -115,6 +116,7 @@ class HomeScreenState extends State<HomeScreen> {
         ClockWidget(),
         SizedBox(height: screenHeight * 0.025),
         statsWidget(),
+        progressWidget(),
         SizedBox(height: screenHeight * 0.075),
         events("NOW (2:30 PM)", "finish the launcher app."),
         events("TOMORROW (5:25 AM)", "complete the presentation."),
@@ -164,6 +166,34 @@ class HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  InteractiveSliderController progressController =
+      InteractiveSliderController(0);
+
+  Widget progressWidget() {
+    progressController.value = 0.5;
+
+    return Row(
+      children: [
+        SizedBox(
+          width: MediaQuery.of(context).size.width * 0.6,
+          child: InteractiveSlider(
+            controller: progressController,
+            startIcon: Icon(Icons.wb_sunny_rounded),
+            endIcon: Icon(Icons.nights_stay_rounded),
+            iconColor: textColor,
+            iconSize: 20,
+            enabled: false,
+            disabledOpacity: 1,
+            backgroundColor: textColor.withOpacity(0.1),
+            foregroundColor: textColor.withOpacity(0.8),
+            unfocusedOpacity: 1,
+          ),
+        ),
+        Expanded(child: Container()),
+      ],
     );
   }
 
@@ -301,6 +331,11 @@ class HomeScreenState extends State<HomeScreen> {
                 children: [
                   TextField(
                     controller: nameController,
+                    style: TextStyle(
+                      color: textColor,
+                      fontFamily: fontNormal,
+                    ),
+                    cursorColor: textColor,
                     decoration: InputDecoration(
                       labelText: 'Rename App',
                       labelStyle: TextStyle(

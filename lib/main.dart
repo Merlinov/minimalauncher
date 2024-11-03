@@ -120,6 +120,8 @@ class _LauncherState extends State<Launcher> {
   }
 
   void openAppDrawer(BuildContext context) async {
+    await _loadPreferences();
+
     // Open the app drawer and wait for a package name to be selected
     final String? selectedPackage = await showModalBottomSheet<String>(
       context: context,

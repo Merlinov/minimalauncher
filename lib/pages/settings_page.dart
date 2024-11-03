@@ -82,6 +82,14 @@ class _SettingsPageState extends State<SettingsPage> {
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
+              Text(
+                "Changing the 'Show Wallpaper' or 'Background Color' setting will require you to restart the app.",
+                style: TextStyle(
+                  color: textColor.withOpacity(0.5),
+                  fontFamily: fontNormal,
+                  fontSize: 12.0,
+                ),
+              ),
               SwitchListTile(
                 title: Text(
                   'Show Wallpaper',
@@ -98,14 +106,6 @@ class _SettingsPageState extends State<SettingsPage> {
                   });
                   _savePreferences();
                 },
-              ),
-              Text(
-                "Changing the 'Show Wallpaper' setting will require you to restart the app.",
-                style: TextStyle(
-                  color: textColor.withOpacity(0.5),
-                  fontFamily: fontNormal,
-                  fontSize: 12.0,
-                ),
               ),
               if (!showWallpaper)
                 ListTile(

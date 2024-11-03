@@ -271,8 +271,13 @@ class _AppDrawerState extends State<AppDrawer> {
             child: TextField(
               controller: searchController,
               autofocus: widget.autoFocusSearch,
+              cursorColor: textColor,
+              style: TextStyle(
+                color: textColor,
+                fontFamily: fontNormal,
+              ),
               decoration: InputDecoration(
-                hintText: "search apps...",
+                hintText: "Search apps...",
                 hintStyle: TextStyle(
                   color: textColor,
                   fontFamily: fontNormal,
