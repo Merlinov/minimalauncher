@@ -30,6 +30,11 @@ class HomeScreenState extends State<HomeScreen> {
   int _batteryLevel = 0;
   late Timer refreshTimer;
 
+  final progressController = InteractiveSliderController(0.0);
+  // Default start and end times (5 am to 10 pm)
+  static const defaultStartTime = TimeOfDay(hour: 5, minute: 0);
+  static const defaultEndTime = TimeOfDay(hour: 22, minute: 0);
+
   List<AppInfo> favoriteApps = [];
 
   void refresh() {
@@ -44,11 +49,13 @@ class HomeScreenState extends State<HomeScreen> {
   void initState() {
     _loadPreferences();
     _loadFavoriteApps();
+    _loadDayProgress();
     _getBatteryPercentage();
 
     refreshTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
       setState(() {
         _getBatteryPercentage();
+        _loadDayProgress();
       });
     });
 
@@ -59,6 +66,7 @@ class HomeScreenState extends State<HomeScreen> {
   void dispose() {
     // cancel the timer when the widget is disposed
     refreshTimer.cancel();
+    progressController.dispose();
     super.dispose();
   }
 
@@ -76,6 +84,21 @@ class HomeScreenState extends State<HomeScreen> {
         selectedColor = Color(selectedColorValue);
       }
     });
+  }
+
+  Future<void> _loadDayProgress() async {
+    // Load day start and end times from SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    final startTimeHour = prefs.getInt('dayStartHour') ?? defaultStartTime.hour;
+    final startTimeMinute =
+        prefs.getInt('dayStartMinute') ?? defaultStartTime.minute;
+    final endTimeHour = prefs.getInt('dayEndHour') ?? defaultEndTime.hour;
+    final endTimeMinute = prefs.getInt('dayEndMinute') ?? defaultEndTime.minute;
+
+    // Calculate and set initial progress
+    final startTime = TimeOfDay(hour: startTimeHour, minute: startTimeMinute);
+    final endTime = TimeOfDay(hour: endTimeHour, minute: endTimeMinute);
+    _updateDayProgress(startTime, endTime);
   }
 
   Future<void> _loadFavoriteApps() async {
@@ -169,31 +192,32 @@ class HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  InteractiveSliderController progressController =
-      InteractiveSliderController(0);
-
   Widget progressWidget() {
-    progressController.value = 0.5;
-
-    return Row(
-      children: [
-        SizedBox(
-          width: MediaQuery.of(context).size.width * 0.6,
-          child: InteractiveSlider(
-            controller: progressController,
-            startIcon: Icon(Icons.wb_sunny_rounded),
-            endIcon: Icon(Icons.nights_stay_rounded),
-            iconColor: textColor,
-            iconSize: 20,
-            enabled: false,
-            disabledOpacity: 1,
-            backgroundColor: textColor.withOpacity(0.1),
-            foregroundColor: textColor.withOpacity(0.8),
-            unfocusedOpacity: 1,
-          ),
+    return GestureDetector(
+      onTap: _setDayStartEndTime,
+      child: Container(
+        color: Colors.transparent,
+        child: Row(
+          children: [
+            SizedBox(
+              width: MediaQuery.of(context).size.width * 0.6,
+              child: InteractiveSlider(
+                controller: progressController,
+                startIcon: Icon(Icons.wb_sunny_rounded),
+                endIcon: Icon(Icons.nights_stay_rounded),
+                iconColor: textColor,
+                iconSize: 20,
+                enabled: false,
+                disabledOpacity: 1,
+                backgroundColor: textColor.withOpacity(0.1),
+                foregroundColor: textColor.withOpacity(0.8),
+                unfocusedOpacity: 1,
+              ),
+            ),
+            Expanded(child: Container()),
+          ],
         ),
-        Expanded(child: Container()),
-      ],
+      ),
     );
   }
 
@@ -311,6 +335,47 @@ class HomeScreenState extends State<HomeScreen> {
         duration: Duration(seconds: 2),
         dismissDirection: DismissDirection.horizontal,
       ),
+    );
+  }
+
+  void _updateDayProgress(TimeOfDay start, TimeOfDay end) {
+    final progress = _calculateDayProgress(start, end);
+    progressController.value = progress;
+  }
+
+  double _calculateDayProgress(TimeOfDay start, TimeOfDay end) {
+    final now = TimeOfDay.now();
+    final startMinutes = start.hour * 60 + start.minute;
+    final endMinutes = end.hour * 60 + end.minute;
+    final currentMinutes = now.hour * 60 + now.minute;
+
+    // Calculate progress between 0 (start of day) and 1 (end of day)
+    return ((currentMinutes - startMinutes) / (endMinutes - startMinutes))
+        .clamp(0.0, 1.0);
+  }
+
+  Future<void> _setDayStartEndTime() async {
+    final start =
+        await _pickTime(context, 'Select Day Start Time', defaultStartTime);
+    final end = await _pickTime(context, 'Select Day End Time', defaultEndTime);
+
+    if (start != null && end != null) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('dayStartHour', start.hour);
+      await prefs.setInt('dayStartMinute', start.minute);
+      await prefs.setInt('dayEndHour', end.hour);
+      await prefs.setInt('dayEndMinute', end.minute);
+
+      _updateDayProgress(start, end);
+    }
+  }
+
+  Future<TimeOfDay?> _pickTime(
+      BuildContext context, String title, TimeOfDay initialTime) {
+    return showTimePicker(
+      context: context,
+      initialTime: initialTime,
+      helpText: title,
     );
   }
 
