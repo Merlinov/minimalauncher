@@ -22,6 +22,7 @@ class HomeScreen extends StatefulWidget {
 
 bool is24HourFormat = false;
 Color textColor = Colors.black;
+Color selectedColor = Colors.white;
 
 class _HomeScreenState extends State<HomeScreen> {
   int _batteryLevel = 0;
@@ -60,6 +61,10 @@ class _HomeScreenState extends State<HomeScreen> {
       if (textColorValue != null) {
         textColor = Color(textColorValue);
       }
+      int? selectedColorValue = prefs.getInt(prefsSelectedColor);
+      if (selectedColorValue != null) {
+        selectedColor = Color(selectedColorValue);
+      }
     });
   }
 
@@ -74,6 +79,12 @@ class _HomeScreenState extends State<HomeScreen> {
             jsonFavorites.map((app) => AppInfo.fromJson(app)).toList();
       });
     }
+  }
+
+  Future<void> _saveFavoriteApps() async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString('favoriteApps',
+        jsonEncode(favoriteApps.map((app) => app.toJson()).toList()));
   }
 
   void _getBatteryPercentage() async {
@@ -125,7 +136,7 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               TextSpan(
                 text:
-                    "${DateFormat.d().format(DateTime.now())} ${DateFormat.MMM().format(DateTime.now()).toLowerCase()}$homeStatsSeperator${DateFormat.EEEE().format(DateTime.now()).toLowerCase()}$homeStatsSeperator$_batteryLevel",
+                    "${DateFormat.d().format(DateTime.now())} ${DateFormat.MMM().format(DateTime.now()).toUpperCase()}$homeStatsSeperator${DateFormat.EEEE().format(DateTime.now()).toUpperCase()}$homeStatsSeperator$_batteryLevel",
                 style: TextStyle(
                   color: textColor,
                   fontSize: 16,
@@ -206,12 +217,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 InstalledApps.startApp(favoriteApps[index].packageName);
               },
               onLongPress: () {
-                // TODO long press favorite app (reorder)
+                editHomeScreenApp(context, index);
               },
               child: Row(
                 children: [
                   Text(
-                    favoriteApps[index].name.toLowerCase(),
+                    favoriteApps[index].name,
                     style: TextStyle(
                       color: textColor,
                       fontSize: 21,
@@ -259,6 +270,99 @@ class _HomeScreenState extends State<HomeScreen> {
         duration: Duration(seconds: 2),
         dismissDirection: DismissDirection.horizontal,
       ),
+    );
+  }
+
+  void editHomeScreenApp(BuildContext context, int index) {
+    TextEditingController nameController =
+        TextEditingController(text: favoriteApps[index].name);
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: selectedColor,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: nameController,
+                    decoration: InputDecoration(labelText: 'Rename App'),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 8.0, horizontal: 12.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        ElevatedButton(
+                          style: ButtonStyle(
+                            backgroundColor: WidgetStatePropertyAll(textColor),
+                            foregroundColor:
+                                WidgetStatePropertyAll(selectedColor),
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              favoriteApps[index].name = nameController.text;
+                            });
+                            _saveFavoriteApps();
+                            setState(() {
+                              _loadPreferences();
+                            });
+                            Navigator.pop(context);
+                          },
+                          child: Text('Save'),
+                        ),
+                        ElevatedButton(
+                          style: ButtonStyle(
+                            backgroundColor: WidgetStatePropertyAll(textColor),
+                            foregroundColor:
+                                WidgetStatePropertyAll(selectedColor),
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              favoriteApps.removeAt(index);
+                            });
+                            _saveFavoriteApps();
+                            setState(() {
+                              _loadPreferences();
+                            });
+                            Navigator.pop(context);
+                          },
+                          child: Text('Remove from Favorites'),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: ReorderableListView.builder(
+                      itemCount: favoriteApps.length,
+                      onReorder: (oldIndex, newIndex) {
+                        setState(() {
+                          if (newIndex > oldIndex) newIndex -= 1;
+                          final item = favoriteApps.removeAt(oldIndex);
+                          favoriteApps.insert(newIndex, item);
+                        });
+                        _saveFavoriteApps();
+                      },
+                      itemBuilder: (context, i) {
+                        return ListTile(
+                          key: ValueKey(favoriteApps[i].packageName),
+                          title: Text(favoriteApps[i].name),
+                          trailing: Icon(Icons.drag_handle_rounded),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

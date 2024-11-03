@@ -50,6 +50,19 @@ class MainActivity: FlutterActivity() {
                     NotificationExpander(this).expand()
                     result.success(null)
                 }
+                "changeLauncher" -> {
+                    changeLauncher()
+                    result.success(null)
+                }
+                "searchGoogle" -> {
+                    val query = call.argument<String>("query")
+                    if (query != null) {
+                        searchGoogle(query)
+                        result.success(null)
+                    } else {
+                        result.error("MISSING_ARGUMENT", "Query parameter is missing", null)
+                    }
+                }
                 else -> {
                     result.notImplemented()
                     Log.d(TAG, "Error: No method found for ${call.method}!")

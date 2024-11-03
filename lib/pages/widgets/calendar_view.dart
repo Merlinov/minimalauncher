@@ -53,7 +53,7 @@ class _CustomCalendarViewState extends State<CustomCalendarView> {
     final firstDayOfMonth = DateTime(selectedDate.year, selectedDate.month, 1);
     final startWeekday = firstDayOfMonth.weekday % 7;
     final monthName =
-        "${DateFormat('MMMM').format(selectedDate).toLowerCase()} '${DateFormat('yy').format(selectedDate)}";
+        "${DateFormat.MMM().format(selectedDate).toUpperCase()} '${DateFormat('yy').format(selectedDate)}";
 
     return Padding(
       padding: const EdgeInsets.all(8.0),

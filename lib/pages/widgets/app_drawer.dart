@@ -6,8 +6,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:device_apps/device_apps.dart';
 
 class AppInfo {
-  final String name;
-  final String packageName;
+  String name;
+  String packageName;
 
   AppInfo({required this.name, required this.packageName});
 

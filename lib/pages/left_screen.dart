@@ -2,11 +2,13 @@
 
 import 'dart:io';
 
+import 'package:android_intent/android_intent.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_wallpaper_manager/flutter_wallpaper_manager.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:minimalauncher/pages/settings_page.dart';
 import 'package:minimalauncher/pages/widgets/calendar_view.dart';
 import 'package:minimalauncher/variables/strings.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -31,9 +33,8 @@ class _LeftScreenState extends State<LeftScreen> {
   // ignore: non_constant_identifier_names
   String WEATHERMAP_API_KEY = "";
   String _temperature = "--";
-  String _weatherLocation = "location";
-  String _weatherSummary =
-      "the summary will appear here (click the widget to enter your API key)";
+  String _weatherLocation = "Location";
+  String _weatherSummary = "Summary";
 
   @override
   void initState() {
@@ -63,8 +64,9 @@ class _LeftScreenState extends State<LeftScreen> {
 
       WEATHERMAP_API_KEY = _prefs.getString(prefsWeatherApiKey) ?? "";
       _temperature = _prefs.getString(prefsWeatherTemp) ?? "--";
-      _weatherSummary = _prefs.getString(prefsWeatherDesc) ?? "summary";
-      _weatherLocation = _prefs.getString(prefsWeatherLocation) ?? "location";
+      _weatherSummary = _prefs.getString(prefsWeatherDesc) ??
+          "The weather summary will appear here (click to enter your API key)";
+      _weatherLocation = _prefs.getString(prefsWeatherLocation) ?? "Location";
     });
   }
 
@@ -109,74 +111,68 @@ class _LeftScreenState extends State<LeftScreen> {
     return SizedBox(
       height: MediaQuery.of(buildContext).size.height * 0.1,
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           GestureDetector(
-            child: Container(
-              width: MediaQuery.of(buildContext).size.width * 0.44,
-              decoration: BoxDecoration(
-                // color: textColor.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.wallpaper_rounded,
-                    color: textColor,
-                    size: 36,
-                  ),
-                  Container(width: 10),
-                  Text(
-                    "change\nwallpaper",
-                    style: TextStyle(
-                      fontFamily: fontNormal,
-                      fontSize: 16,
-                      color: textColor,
-                      height: 1.25,
-                    ),
-                  ),
-                ],
-              ),
+            child: Icon(
+              Icons.image_rounded,
+              color: textColor,
+              size: 36,
             ),
             onTap: () {
               HapticFeedback.mediumImpact();
               _changeWallpaper(context);
             },
           ),
-          Expanded(child: Container()),
           GestureDetector(
-            child: Container(
-              width: MediaQuery.of(buildContext).size.width * 0.44,
-              decoration: BoxDecoration(
-                // color: textColor.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.rocket_launch_outlined,
-                    color: textColor,
-                    size: 36,
-                  ),
-                  Container(width: 10),
-                  Text(
-                    "change\nlauncher",
-                    style: TextStyle(
-                      fontFamily: fontNormal,
-                      fontSize: 16,
-                      color: textColor,
-                      height: 1.25,
-                    ),
-                  ),
-                ],
-              ),
+            child: Icon(
+              Icons.rocket_rounded,
+              color: textColor,
+              size: 36,
             ),
             onTap: () {
               HapticFeedback.mediumImpact();
               changeLauncher();
+            },
+          ),
+          GestureDetector(
+            child: Icon(
+              Icons.settings_suggest_rounded,
+              color: textColor,
+              size: 36,
+            ),
+            onTap: () {
+              HapticFeedback.mediumImpact();
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => SettingsPage(),
+                ),
+              ).then((value) {
+                // Check if preferences have been changed
+                if (value == true) {
+                  setState(() {
+                    _loadPreferences(); // Reload preferences to reflect changes in the clock
+                  });
+                }
+              });
+            },
+          ),
+          GestureDetector(
+            child: Icon(
+              Icons.settings_rounded,
+              color: textColor,
+              size: 36,
+            ),
+            onTap: () async {
+              HapticFeedback.mediumImpact();
+
+              const intent = AndroidIntent(action: 'android.settings.SETTINGS');
+              try {
+                await intent.launch();
+              } catch (e) {
+                showSnackBar(e.toString());
+              }
             },
           ),
         ],
@@ -185,80 +181,82 @@ class _LeftScreenState extends State<LeftScreen> {
   }
 
   Widget temperatureWidget(BuildContext buildContext) {
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _temperature = "--";
-          _getWeather();
-        });
-      },
-      onLongPress: () {
-        HapticFeedback.mediumImpact();
-        searchGoogle("weather");
-      },
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(
-          children: [
-            Icon(
-              Icons.thermostat_rounded,
-              color: textColor,
-              size: 36,
-            ),
-            Container(width: 10),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                RichText(
-                  text: TextSpan(
-                    children: [
-                      TextSpan(
-                        text: _temperature,
-                        style: TextStyle(
-                          fontFamily: fontNormal,
-                          fontSize: 26,
-                          fontWeight: FontWeight.w500,
-                          color: textColor,
-                          height: 1.25,
+    return SizedBox(
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _temperature = "--";
+            _getWeather();
+          });
+        },
+        onLongPress: () {
+          HapticFeedback.mediumImpact();
+          searchGoogle("weather");
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            children: [
+              Icon(
+                Icons.thermostat_rounded,
+                color: textColor,
+                size: 36,
+              ),
+              Container(width: 10),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  RichText(
+                    text: TextSpan(
+                      children: [
+                        TextSpan(
+                          text: _temperature,
+                          style: TextStyle(
+                            fontFamily: fontNormal,
+                            fontSize: 26,
+                            fontWeight: FontWeight.w500,
+                            color: textColor,
+                            height: 1.25,
+                          ),
                         ),
-                      ),
-                      TextSpan(
-                        text: "°C",
-                        style: TextStyle(
-                          fontFamily: fontNormal,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          color: textColor,
+                        TextSpan(
+                          text: "°C",
+                          style: TextStyle(
+                            fontFamily: fontNormal,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: textColor,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                Text(
-                  _weatherLocation.toLowerCase(),
-                  style: TextStyle(
-                    fontFamily: fontNormal,
-                    fontSize: 14,
-                    color: textColor.withOpacity(0.8),
-                    height: 1.25,
-                  ),
-                ),
-                Container(height: 2),
-                SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.7,
-                  child: Text(
-                    _weatherSummary,
+                  Text(
+                    _weatherLocation,
                     style: TextStyle(
                       fontFamily: fontNormal,
-                      fontSize: 11,
+                      fontSize: 14,
                       color: textColor.withOpacity(0.8),
                       height: 1.25,
                     ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                  Container(height: 2),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.7,
+                    child: Text(
+                      _weatherSummary,
+                      style: TextStyle(
+                        fontFamily: fontNormal,
+                        fontSize: 11,
+                        color: textColor.withOpacity(0.8),
+                        height: 1.25,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -332,10 +330,10 @@ class _LeftScreenState extends State<LeftScreen> {
       int humidity = weather.humidity != null ? weather.humidity!.toInt() : 0;
 
       // Create a detailed weather summary
-      String weatherSummary = "$description  •  feels like $feelsLike°C.\n"
-          "min $minTemp°C  •  max $maxTemp°C  •  humidity $humidity%\n"
-          "sunrise ${weather.sunrise!.toString().substring(11, 16)}  •  "
-          "sunset ${weather.sunset!.toString().substring(11, 16)}";
+      String weatherSummary = "$description  •  Feels like $feelsLike°C.\n"
+          "Mmin $minTemp°C  •  Max $maxTemp°C  •  Humidity $humidity%\n"
+          "Sunrise ${weather.sunrise!.toString().substring(11, 16)}  •  "
+          "Sunset ${weather.sunset!.toString().substring(11, 16)}";
 
       setState(() {
         savePrefs(

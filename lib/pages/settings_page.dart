@@ -12,7 +12,7 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  bool showWallpaper = true;
+  bool showWallpaper = false;
   bool is24HourFormat = false;
   Color selectedColor = Colors.white; // Background color
   Color textColor = Colors.black; // Text color
@@ -27,8 +27,9 @@ class _SettingsPageState extends State<SettingsPage> {
   // Load preferences from shared preferences
   _loadPreferences() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
+
     setState(() {
-      showWallpaper = prefs.getBool(prefsShowWallpaper) ?? true;
+      showWallpaper = prefs.getBool(prefsShowWallpaper) ?? false;
       is24HourFormat = prefs.getBool(prefsIs24HourFormat) ?? false;
       int? colorValue = prefs.getInt(prefsSelectedColor);
       int? textColorValue = prefs.getInt(prefsTextColor);
@@ -128,9 +129,7 @@ class _SettingsPageState extends State<SettingsPage> {
               Divider(),
               SwitchListTile(
                 title: Text(
-                  is24HourFormat
-                      ? '24-Hour Time Format'
-                      : '12-Hour Time Format',
+                  '24 Hour Format',
                   style: TextStyle(
                     color: textColor,
                     fontFamily: fontNormal,

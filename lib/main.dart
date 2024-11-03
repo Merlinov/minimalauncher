@@ -40,6 +40,17 @@ class _LauncherState extends State<Launcher> {
   // Load preferences from shared preferences
   _loadPreferences() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    if (!prefs.containsKey(prefsShowWallpaper)) {
+      prefs.setBool(prefsShowWallpaper, false);
+    }
+    if (!prefs.containsKey(prefsSelectedColor)) {
+      prefs.setInt(prefsSelectedColor, Color.fromRGBO(228, 228, 228, 1).value);
+    }
+    if (!prefs.containsKey(prefsTextColor)) {
+      prefs.setInt(prefsTextColor, Color.fromRGBO(84, 84, 84, 1).value);
+    }
+
     setState(() {
       showWallpaper = prefs.getBool(prefsShowWallpaper) ?? false;
       int? colorValue = prefs.getInt(prefsSelectedColor);
@@ -86,21 +97,8 @@ class _LauncherState extends State<Launcher> {
                 }
               },
               onLongPress: () {
-                HapticFeedback.heavyImpact();
-                // Push to settings page using a valid context
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => SettingsPage(),
-                  ),
-                ).then((value) {
-                  // Check if preferences have been changed
-                  if (value == true) {
-                    setState(() {
-                      _loadPreferences(); // Reload preferences to reflect changes in the clock
-                    });
-                  }
-                });
+                // HapticFeedback.heavyImpact();
+                // Open app settings (now moved to Left Screen)
               },
               child: PageView(
                 controller: _pageController,
