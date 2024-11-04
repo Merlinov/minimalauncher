@@ -47,6 +47,7 @@ class _AppDrawerState extends State<AppDrawer> {
   List<AppInfo> favoriteApps = [];
   TextEditingController searchController = TextEditingController();
   String filter = "";
+  bool showAllApps = false;
 
   Color get bgColor => widget.bgColor;
   Color get textColor => widget.textColor;
@@ -166,10 +167,133 @@ class _AppDrawerState extends State<AppDrawer> {
                 !app.name.toLowerCase().startsWith(filter.toLowerCase())),
           ].toList();
 
+    final letters = apps
+        .map((app) => app.name[0]
+            .toUpperCase()) // Extracts the first letter of each app name and converts it to uppercase.
+        .toSet() // Converts to a Set to remove duplicates, ensuring each letter appears only once.
+        .toList() // Converts back to a List.
+      ..sort(); // Sorts the letters alphabetically.
+
+    if (showAllApps) {
+      return Scaffold(
+        backgroundColor: widget.bgColor,
+        body: Column(
+          children: [
+            Text(
+              "All Apps",
+              style: TextStyle(
+                color: widget.textColor,
+                fontSize: 18,
+                fontFamily: fontNormal,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Expanded(
+              child: Row(
+                children: [
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: apps.length,
+                      itemBuilder: (context, index) {
+                        final app = apps[index];
+
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.pop(context, app.packageName);
+                          },
+                          onLongPress: () {
+                            HapticFeedback.mediumImpact();
+                            DeviceApps.openAppSettings(app.packageName);
+                            // Navigator.pop(context, null);
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 2.0, horizontal: 16.0),
+                            child: Expanded(
+                              child: Text(
+                                app.name,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: widget.textColor,
+                                  fontSize: 18,
+                                  fontFamily: fontNormal,
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  SizedBox(
+                    width: 30,
+                    child: ListView.builder(
+                      itemCount: letters.length,
+                      itemBuilder: (context, index) {
+                        final letter = letters[index];
+                        return GestureDetector(
+                          onTap: () {
+                            final targetIndex = apps.indexWhere(
+                                (app) => app.name.startsWith(letter));
+                            if (targetIndex != -1) {
+                              Scrollable.ensureVisible(
+                                context,
+                                duration: Duration(milliseconds: 300),
+                                curve: Curves.easeInOut,
+                                alignment: 0.5,
+                                alignmentPolicy:
+                                    ScrollPositionAlignmentPolicy.explicit,
+                              );
+                            }
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 2.0),
+                            child: Text(
+                              letter,
+                              style: TextStyle(
+                                color: widget.textColor,
+                                fontSize: 16,
+                                fontFamily: fontNormal,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: bgColor,
       body: Column(
         children: [
+          GestureDetector(
+            onTap: () {
+              HapticFeedback.lightImpact();
+              setState(() {
+                showAllApps = true;
+              });
+            },
+            child: SizedBox(
+              width: MediaQuery.of(context).size.width * 0.9,
+              child: Text(
+                "All Apps",
+                style: TextStyle(
+                  color: textColor,
+                  fontSize: 18,
+                  fontFamily: fontNormal,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
           // Displaying 10 most recently installed apps
           if (recentApps.isNotEmpty && filter.isEmpty)
             Expanded(

@@ -2,7 +2,7 @@
 
 import 'dart:io';
 
-import 'package:android_intent/android_intent.dart';
+import 'package:android_intent_plus/android_intent.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -198,6 +198,7 @@ class _LeftScreenState extends State<LeftScreen> {
 
                 const intent =
                     AndroidIntent(action: 'android.settings.SETTINGS');
+
                 try {
                   await intent.launch();
                 } catch (e) {
