@@ -1,6 +1,5 @@
 // ignore_for_file: prefer_const_constructors
 
-import 'package:device_apps/device_apps.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:installed_apps/app_info.dart';
@@ -135,7 +134,7 @@ class _LauncherState extends State<Launcher> {
 
     if (selectedPackage != null) {
       HapticFeedback.mediumImpact();
-      DeviceApps.openApp(selectedPackage);
+      InstalledApps.startApp(selectedPackage);
     }
 
     _refreshScreens();

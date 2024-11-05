@@ -6,7 +6,6 @@ import 'package:android_intent_plus/android_intent.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_wallpaper_manager/flutter_wallpaper_manager.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:interactive_slider/interactive_slider.dart';
 import 'package:minimalauncher/pages/settings_page.dart';
@@ -14,6 +13,7 @@ import 'package:minimalauncher/pages/widgets/calendar_view.dart';
 import 'package:minimalauncher/variables/strings.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wallpaper/wallpaper.dart';
 import 'package:weather/weather.dart';
 
 class LeftScreen extends StatefulWidget {
@@ -327,11 +327,7 @@ class _LeftScreenState extends State<LeftScreen> {
       return;
     }
 
-    int location = WallpaperManager.BOTH_SCREEN;
-    await WallpaperManager.setWallpaperFromFile(
-      file.path,
-      location,
-    );
+    Wallpaper.bothScreen(imageName: file.path);
   }
 
   Future<void> _getWeather() async {

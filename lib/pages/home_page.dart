@@ -3,16 +3,17 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:alarm/alarm.dart';
 import 'package:battery_plus/battery_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_alarm_clock/flutter_alarm_clock.dart';
 import 'package:installed_apps/installed_apps.dart';
 import 'package:interactive_slider/interactive_slider.dart';
 import 'package:intl/intl.dart';
 import 'package:minimalauncher/pages/widgets/app_drawer.dart';
 import 'package:minimalauncher/variables/strings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -35,7 +36,7 @@ class HomeScreenState extends State<HomeScreen> {
   static const defaultStartTime = TimeOfDay(hour: 5, minute: 0);
   static const defaultEndTime = TimeOfDay(hour: 22, minute: 0);
 
-  List<AppInfo> favoriteApps = [];
+  List<Application> favoriteApps = [];
 
   void refresh() {
     setState(() {
@@ -109,7 +110,7 @@ class HomeScreenState extends State<HomeScreen> {
       List<dynamic> jsonFavorites = jsonDecode(cachedFavorites);
       setState(() {
         favoriteApps =
-            jsonFavorites.map((app) => AppInfo.fromJson(app)).toList();
+            jsonFavorites.map((app) => Application.fromJson(app)).toList();
       });
     }
   }
@@ -585,8 +586,18 @@ class ClockWidget extends StatelessWidget {
                 ),
 
                 // date clicked
-                onTap: () {
-                  FlutterAlarmClock.showAlarms();
+                onTap: () async {
+                  try {
+                    await _channel.invokeMethod('showClock');
+                  } on PlatformException catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("Could not open the clock app. $e"),
+                        duration: Duration(seconds: 2),
+                        dismissDirection: DismissDirection.horizontal,
+                      ),
+                    );
+                  }
                 },
               ),
               if (!is24HourFormat) SizedBox(width: 5),
@@ -624,4 +635,6 @@ class ClockWidget extends StatelessWidget {
     int hour = dateTime.hour;
     return hour > 12 ? 'PM' : 'AM';
   }
+
+  static const MethodChannel _channel = MethodChannel('main_channel');
 }

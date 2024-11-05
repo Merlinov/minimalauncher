@@ -4,6 +4,7 @@ import android.app.Application
 import android.app.NotificationManager
 import android.app.SearchManager
 import android.content.Context
+import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
@@ -61,6 +62,49 @@ class MainActivity: FlutterActivity() {
                         result.success(null)
                     } else {
                         result.error("MISSING_ARGUMENT", "Query parameter is missing", null)
+                    }
+                }
+                "showClock" -> {
+                    val packageManager = applicationContext.packageManager
+                    val alarmClockIntent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)
+
+                    // Known Clock apps on different manufacturers
+                    val clockImpls = arrayOf(
+                        arrayOf("HTC Alarm Clock", "com.htc.android.worldclock", "com.htc.android.worldclock.WorldClockTabControl"),
+                        arrayOf("Standard Alarm Clock", "com.android.deskclock", "com.android.deskclock.AlarmClock"),
+                        arrayOf("Froyo Nexus Alarm Clock", "com.google.android.deskclock", "com.android.deskclock.DeskClock"),
+                        arrayOf("Moto Blur Alarm Clock", "com.motorola.blur.alarmclock", "com.motorola.blur.alarmclock.AlarmClock"),
+                        arrayOf("Samsung Galaxy Clock", "com.sec.android.app.clockpackage", "com.sec.android.app.clockpackage.ClockPackage"),
+                        arrayOf("Sony Xperia Z", "com.sonyericsson.organizer", "com.sonyericsson.organizer.Organizer_WorldClock"),
+                        arrayOf("ASUS Tablets", "com.asus.deskclock", "com.asus.deskclock.DeskClock")
+                    )
+
+                    var foundClockImpl = false
+
+                    // Try to find a working clock implementation
+                    for (clockImpl in clockImpls) {
+                        val packageName = clockImpl[1]
+                        val className = clockImpl[2]
+                        try {
+                            val cn = ComponentName(packageName, className)
+                            packageManager.getActivityInfo(cn, PackageManager.GET_META_DATA)
+                            alarmClockIntent.component = cn
+                            foundClockImpl = true
+                            break
+                        } catch (e: PackageManager.NameNotFoundException) {
+                            // Clock app not found, try the next
+                        }
+                    }
+
+                    if (foundClockImpl) {
+                        try {
+                            startActivity(alarmClockIntent)
+                            result.success(null)
+                        } catch (e: Exception) {
+                            result.error("UNAVAILABLE", "Could not open the clock app.", null)
+                        }
+                    } else {
+                        result.error("UNAVAILABLE", "Clock app not found", null)
                     }
                 }
                 else -> {

@@ -1,18 +1,20 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:installed_apps/app_info.dart';
+import 'package:installed_apps/installed_apps.dart';
 import 'package:minimalauncher/variables/strings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:device_apps/device_apps.dart';
+// import 'package:device_apps/device_apps.dart';
 
-class AppInfo {
+class Application {
   String name;
   String packageName;
 
-  AppInfo({required this.name, required this.packageName});
+  Application({required this.name, required this.packageName});
 
-  factory AppInfo.fromJson(Map<String, dynamic> json) {
-    return AppInfo(
+  factory Application.fromJson(Map<String, dynamic> json) {
+    return Application(
       name: json['name'],
       packageName: json['packageName'],
     );
@@ -42,9 +44,9 @@ class AppDrawer extends StatefulWidget {
 }
 
 class _AppDrawerState extends State<AppDrawer> {
-  List<AppInfo> apps = [];
-  List<AppInfo> recentApps = [];
-  List<AppInfo> favoriteApps = [];
+  List<Application> apps = [];
+  List<Application> recentApps = [];
+  List<Application> favoriteApps = [];
   TextEditingController searchController = TextEditingController();
   String filter = "";
   bool showAllApps = false;
@@ -74,7 +76,7 @@ class _AppDrawerState extends State<AppDrawer> {
     if (cachedApps != null) {
       List<dynamic> jsonApps = jsonDecode(cachedApps);
       setState(() {
-        apps = jsonApps.map((app) => AppInfo.fromJson(app)).toList();
+        apps = jsonApps.map((app) => Application.fromJson(app)).toList();
       });
     }
 
@@ -82,7 +84,7 @@ class _AppDrawerState extends State<AppDrawer> {
       List<dynamic> jsonRecentApps = jsonDecode(cachedRecentApps);
       setState(() {
         recentApps =
-            jsonRecentApps.map((app) => AppInfo.fromJson(app)).toList();
+            jsonRecentApps.map((app) => Application.fromJson(app)).toList();
       });
     }
 
@@ -90,25 +92,61 @@ class _AppDrawerState extends State<AppDrawer> {
     _fetchAndCacheApps();
   }
 
+/*
   Future<void> _fetchAndCacheApps() async {
-    List<Application> installedApps = await DeviceApps.getInstalledApplications(
-      includeAppIcons: false,
-      onlyAppsWithLaunchIntent: true,
-    );
+    // List<Application> installedApps = await DeviceApps.getInstalledApplications(
+    //   includeAppIcons: false,
+    //   onlyAppsWithLaunchIntent: true,
+    // );
+    List<AppInfo> installedApps = []; // TODO
 
     // Sort the apps by install time (most recent first)
-    installedApps
-        .sort((a, b) => b.installTimeMillis.compareTo(a.installTimeMillis));
+    // installedApps
+    //     .sort((a, b) => b.installTimeMillis.compareTo(a.installTimeMillis)); TODO
 
     // Get list of all apps and only top 10 most recent
     List<AppInfo> allAppsList = installedApps.map((app) {
       return AppInfo(
-        name: app.appName,
+        // name: app.appName,
+        name: app.name, // TODO remove
         packageName: app.packageName,
       );
     }).toList();
 
     List<AppInfo> recentAppsList =
+        allAppsList.take(10).toList().reversed.toList();
+
+    // Cache both full app list and recent apps
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('cachedApps',
+        jsonEncode(allAppsList.map((app) => app.toJson()).toList()));
+    await prefs.setString('recentApps',
+        jsonEncode(recentAppsList.map((app) => app.toJson()).toList()));
+
+    // Update state in background to reflect new data
+    setState(() {
+      apps = allAppsList;
+      recentApps = recentAppsList;
+    });
+  }*/
+
+  Future<void> _fetchAndCacheApps() async {
+    List<AppInfo> installedApps =
+        await InstalledApps.getInstalledApps(true, false);
+
+    // Sort the apps by install time (most recent first)
+    installedApps
+        .sort((a, b) => b.installedTimestamp.compareTo(a.installedTimestamp));
+
+    // Get list of all apps and only top 10 most recent
+    List<Application> allAppsList = installedApps.map((app) {
+      return Application(
+        name: app.name,
+        packageName: app.packageName,
+      );
+    }).toList();
+
+    List<Application> recentAppsList =
         allAppsList.take(10).toList().reversed.toList();
 
     // Cache both full app list and recent apps
@@ -133,12 +171,12 @@ class _AppDrawerState extends State<AppDrawer> {
       List<dynamic> jsonFavorites = jsonDecode(cachedFavorites);
       setState(() {
         favoriteApps =
-            jsonFavorites.map((app) => AppInfo.fromJson(app)).toList();
+            jsonFavorites.map((app) => Application.fromJson(app)).toList();
       });
     }
   }
 
-  Future<void> _toggleFavorite(AppInfo app) async {
+  Future<void> _toggleFavorite(Application app) async {
     final prefs = await SharedPreferences.getInstance();
 
     if (favoriteApps.any((fav) => fav.packageName == app.packageName)) {
@@ -167,102 +205,47 @@ class _AppDrawerState extends State<AppDrawer> {
                 !app.name.toLowerCase().startsWith(filter.toLowerCase())),
           ].toList();
 
-    final letters = apps
-        .map((app) => app.name[0]
-            .toUpperCase()) // Extracts the first letter of each app name and converts it to uppercase.
-        .toSet() // Converts to a Set to remove duplicates, ensuring each letter appears only once.
-        .toList() // Converts back to a List.
-      ..sort(); // Sorts the letters alphabetically.
-
     if (showAllApps) {
+      apps.sort((a, b) => a.name.compareTo(b.name));
       return Scaffold(
         backgroundColor: widget.bgColor,
         body: Column(
           children: [
-            Text(
-              "All Apps",
-              style: TextStyle(
-                color: widget.textColor,
-                fontSize: 18,
-                fontFamily: fontNormal,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            Expanded(
-              child: Row(
-                children: [
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: apps.length,
-                      itemBuilder: (context, index) {
-                        final app = apps[index];
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Expanded(
+                child: ListView.builder(
+                  itemCount: apps.length,
+                  itemBuilder: (context, index) {
+                    final app = apps[index];
 
-                        return GestureDetector(
-                          onTap: () {
-                            Navigator.pop(context, app.packageName);
-                          },
-                          onLongPress: () {
-                            HapticFeedback.mediumImpact();
-                            DeviceApps.openAppSettings(app.packageName);
-                            // Navigator.pop(context, null);
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 2.0, horizontal: 16.0),
-                            child: Expanded(
-                              child: Text(
-                                app.name,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  color: widget.textColor,
-                                  fontSize: 18,
-                                  fontFamily: fontNormal,
-                                ),
-                              ),
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.pop(context, app.packageName);
+                      },
+                      onLongPress: () {
+                        HapticFeedback.mediumImpact();
+                        InstalledApps.openSettings(app.packageName);
+                        // Navigator.pop(context, null);
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 2.0, horizontal: 16.0),
+                        child: Expanded(
+                          child: Text(
+                            app.name,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: widget.textColor,
+                              fontSize: 18,
+                              fontFamily: fontNormal,
                             ),
                           ),
-                        );
-                      },
-                    ),
-                  ),
-                  SizedBox(
-                    width: 30,
-                    child: ListView.builder(
-                      itemCount: letters.length,
-                      itemBuilder: (context, index) {
-                        final letter = letters[index];
-                        return GestureDetector(
-                          onTap: () {
-                            final targetIndex = apps.indexWhere(
-                                (app) => app.name.startsWith(letter));
-                            if (targetIndex != -1) {
-                              Scrollable.ensureVisible(
-                                context,
-                                duration: Duration(milliseconds: 300),
-                                curve: Curves.easeInOut,
-                                alignment: 0.5,
-                                alignmentPolicy:
-                                    ScrollPositionAlignmentPolicy.explicit,
-                              );
-                            }
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 2.0),
-                            child: Text(
-                              letter,
-                              style: TextStyle(
-                                color: widget.textColor,
-                                fontSize: 16,
-                                fontFamily: fontNormal,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ),
             ),
           ],
@@ -274,29 +257,32 @@ class _AppDrawerState extends State<AppDrawer> {
       backgroundColor: bgColor,
       body: Column(
         children: [
-          GestureDetector(
-            onTap: () {
-              HapticFeedback.lightImpact();
-              setState(() {
-                showAllApps = true;
-              });
-            },
-            child: SizedBox(
-              width: MediaQuery.of(context).size.width * 0.9,
-              child: Text(
-                "All Apps",
-                style: TextStyle(
-                  color: textColor,
-                  fontSize: 18,
-                  fontFamily: fontNormal,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
+          // TODO All Apps (grid view + list view)
+          // Expanded(
+          //   child: Center(
+          //     child: GestureDetector(
+          //       onTap: () {
+          //         HapticFeedback.lightImpact();
+          //         setState(() {
+          //           showAllApps = true;
+          //         });
+          //       },
+          //       child: Text(
+          //         "All Apps >",
+          //         style: TextStyle(
+          //           color: textColor,
+          //           fontSize: 18,
+          //           fontFamily: fontNormal,
+          //           fontWeight: FontWeight.bold,
+          //         ),
+          //       ),
+          //     ),
+          //   ),
+          // ),
           // Displaying 10 most recently installed apps
           if (recentApps.isNotEmpty && filter.isEmpty)
             Expanded(
+              flex: 4,
               child: SizedBox(
                 width: MediaQuery.of(context).size.width * 0.9,
                 child: Column(
@@ -309,7 +295,7 @@ class _AppDrawerState extends State<AppDrawer> {
                       },
                       onLongPress: () {
                         HapticFeedback.mediumImpact();
-                        DeviceApps.openAppSettings(app.packageName);
+                        InstalledApps.openSettings(app.packageName);
                         Navigator.pop(context, null);
                       },
                       child: Padding(
@@ -347,7 +333,7 @@ class _AppDrawerState extends State<AppDrawer> {
                     },
                     onLongPress: () {
                       HapticFeedback.mediumImpact();
-                      DeviceApps.openAppSettings(app.packageName);
+                      InstalledApps.openSettings(app.packageName);
                       Navigator.pop(context, null);
                     },
                     child: Padding(
