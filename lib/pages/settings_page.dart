@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:minimalauncher/main.dart';
 import 'package:minimalauncher/variables/strings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -83,7 +84,7 @@ class _SettingsPageState extends State<SettingsPage> {
           child: Column(
             children: [
               Text(
-                "Changing the 'Show Wallpaper' or 'Background Color' setting will require you to restart the app.",
+                "Changing the 'Show Wallpaper' or 'Background Color' setting will restart the app.",
                 style: TextStyle(
                   color: textColor.withOpacity(0.5),
                   fontFamily: fontNormal,
@@ -105,6 +106,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     preferencesChanged = true;
                   });
                   _savePreferences();
+                  restartApp();
                 },
               ),
               if (!showWallpaper)
@@ -208,6 +210,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 setState(() {
                   if (pickerType == 'background') {
                     selectedColor = color;
+                    restartApp();
                   } else if (pickerType == 'text') {
                     textColor = color;
                   }
@@ -228,5 +231,9 @@ class _SettingsPageState extends State<SettingsPage> {
         );
       },
     );
+  }
+
+  void restartApp() {
+    RestartWidget.restartApp(context);
   }
 }

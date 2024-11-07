@@ -92,47 +92,9 @@ class _AppDrawerState extends State<AppDrawer> {
     _fetchAndCacheApps();
   }
 
-/*
-  Future<void> _fetchAndCacheApps() async {
-    // List<Application> installedApps = await DeviceApps.getInstalledApplications(
-    //   includeAppIcons: false,
-    //   onlyAppsWithLaunchIntent: true,
-    // );
-    List<AppInfo> installedApps = []; // TODO
-
-    // Sort the apps by install time (most recent first)
-    // installedApps
-    //     .sort((a, b) => b.installTimeMillis.compareTo(a.installTimeMillis)); TODO
-
-    // Get list of all apps and only top 10 most recent
-    List<AppInfo> allAppsList = installedApps.map((app) {
-      return AppInfo(
-        // name: app.appName,
-        name: app.name, // TODO remove
-        packageName: app.packageName,
-      );
-    }).toList();
-
-    List<AppInfo> recentAppsList =
-        allAppsList.take(10).toList().reversed.toList();
-
-    // Cache both full app list and recent apps
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('cachedApps',
-        jsonEncode(allAppsList.map((app) => app.toJson()).toList()));
-    await prefs.setString('recentApps',
-        jsonEncode(recentAppsList.map((app) => app.toJson()).toList()));
-
-    // Update state in background to reflect new data
-    setState(() {
-      apps = allAppsList;
-      recentApps = recentAppsList;
-    });
-  }*/
-
   Future<void> _fetchAndCacheApps() async {
     List<AppInfo> installedApps =
-        await InstalledApps.getInstalledApps(true, false);
+        await InstalledApps.getInstalledApps(false, false);
 
     // Sort the apps by install time (most recent first)
     installedApps
@@ -279,6 +241,7 @@ class _AppDrawerState extends State<AppDrawer> {
           //     ),
           //   ),
           // ),
+
           // Displaying 10 most recently installed apps
           if (recentApps.isNotEmpty && filter.isEmpty)
             Expanded(
