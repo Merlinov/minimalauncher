@@ -1,5 +1,6 @@
 // ignore_for_file: prefer_const_constructors
 
+import 'package:alarm/alarm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:installed_apps/app_info.dart';
@@ -12,7 +13,8 @@ import 'package:minimalauncher/variables/strings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:installed_apps/installed_apps.dart';
 
-void main() {
+void main() async {
+  await Alarm.init();
   runApp(RestartWidget(child: Launcher()));
 }
 

@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:installed_apps/installed_apps.dart';
 import 'package:interactive_slider/interactive_slider.dart';
 import 'package:intl/intl.dart';
+import 'package:minimalauncher/pages/right_screen.dart';
 import 'package:minimalauncher/pages/widgets/app_drawer.dart';
 import 'package:minimalauncher/variables/strings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -37,12 +38,13 @@ class HomeScreenState extends State<HomeScreen> {
   static const defaultEndTime = TimeOfDay(hour: 22, minute: 0);
 
   List<Application> favoriteApps = [];
+  List<Event> _eventsToShowOnHome = [];
 
   void refresh() {
     setState(() {
       _loadPreferences();
       _loadFavoriteApps();
-      // TODO load events ?
+      _loadHomeScreenEvents();
     });
   }
 
@@ -84,6 +86,19 @@ class HomeScreenState extends State<HomeScreen> {
       if (selectedColorValue != null) {
         selectedColor = Color(selectedColorValue);
       }
+    });
+  }
+
+  Future<void> _loadHomeScreenEvents() async {
+    final prefs = await SharedPreferences.getInstance();
+    final eventList = prefs.getStringList('events') ?? [];
+
+    // Filter events marked for home screen
+    final allEvents =
+        eventList.map((e) => Event.fromJson(json.decode(e))).toList();
+    setState(() {
+      _eventsToShowOnHome =
+          allEvents.where((event) => event.showOnHomeScreen).toList();
     });
   }
 
@@ -142,8 +157,7 @@ class HomeScreenState extends State<HomeScreen> {
         statsWidget(),
         progressWidget(),
         SizedBox(height: screenHeight * 0.075),
-        events("NOW (2:30 PM)", "finish the launcher app."),
-        events("TOMORROW (5:25 AM)", "complete the presentation."),
+        eventsWidget(),
         Expanded(child: Container()),
         homeScreenApps(),
         Expanded(child: Container()),
@@ -222,7 +236,27 @@ class HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget events(String title, String desc) {
+  Widget eventsWidget() {
+    return _eventsToShowOnHome.isNotEmpty
+        ? ListView.builder(
+            itemCount: _eventsToShowOnHome.length,
+            itemBuilder: (context, index) {
+              final eventItem = _eventsToShowOnHome[index];
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: event(
+                  eventItem.name,
+                  '${eventItem.deadline.month}/${eventItem.deadline.day} ${eventItem.deadline.hour}:${eventItem.deadline.minute.toString().padLeft(2, '0')}',
+                ),
+              );
+            },
+          )
+        : Center(
+            child: event("Add an event now!", ""),
+          );
+  }
+
+  Widget event(String title, String desc) {
     return SizedBox(
       width: MediaQuery.of(context).size.width * 0.8,
       child: Row(
