@@ -6,7 +6,6 @@ import 'package:minimalauncher/variables/strings.dart';
 class CustomCalendarView extends StatefulWidget {
   final DateTime initialDate;
   final Color bgColor;
-  final Color accentColor;
   final Color textColor;
   final String fontFamily;
   final List<DateTime> eventDates;
@@ -16,7 +15,6 @@ class CustomCalendarView extends StatefulWidget {
     required this.initialDate,
     required this.bgColor,
     required this.textColor,
-    required this.accentColor,
     required this.eventDates,
     required this.fontFamily,
   }) : super(key: key);
@@ -160,30 +158,35 @@ class _CustomCalendarViewState extends State<CustomCalendarView> {
 
       days.add(Column(
         children: [
-          GestureDetector(
-            onTap: () {
-              // TODO day clicked
-            },
-            child: Text(
-              '$day',
-              style: TextStyle(
-                fontSize: 16,
-                fontFamily: fontNormal,
-                color: hasEvent ? widget.accentColor : widget.textColor,
-              ),
-            ),
-          ),
-          // Indicator below the day with an event
-          // if (hasEvent)
-          //   Container(
-          //     margin: const EdgeInsets.only(top: 2),
-          //     width: 5,
-          //     height: 5,
-          //     decoration: BoxDecoration(
-          //       color: widget.accentColor,
-          //       shape: BoxShape.circle,
-          //     ),
-          //   ),
+          hasEvent
+              ? Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: widget.textColor,
+                  ),
+                  padding: const EdgeInsets.all(2.0),
+                  child: Text(
+                    '$day',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontFamily: fontNormal,
+                      color: widget.bgColor,
+                    ),
+                  ),
+                )
+              : GestureDetector(
+                  onTap: () {
+                    // TODO day clicked
+                  },
+                  child: Text(
+                    '$day',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontFamily: fontNormal,
+                      color: widget.textColor,
+                    ),
+                  ),
+                ),
         ],
       ));
 

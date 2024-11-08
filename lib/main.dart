@@ -3,17 +3,16 @@
 import 'package:alarm/alarm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:installed_apps/app_info.dart';
 import 'package:minimalauncher/pages/home_page.dart';
 import 'package:minimalauncher/pages/left_screen.dart';
 import 'package:minimalauncher/pages/right_screen.dart';
-import 'package:minimalauncher/pages/settings_page.dart';
 import 'package:minimalauncher/pages/widgets/app_drawer.dart';
 import 'package:minimalauncher/variables/strings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:installed_apps/installed_apps.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   await Alarm.init();
   runApp(RestartWidget(child: Launcher()));
 }

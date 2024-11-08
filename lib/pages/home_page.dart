@@ -3,7 +3,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:alarm/alarm.dart';
 import 'package:battery_plus/battery_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -14,7 +13,6 @@ import 'package:minimalauncher/pages/right_screen.dart';
 import 'package:minimalauncher/pages/widgets/app_drawer.dart';
 import 'package:minimalauncher/variables/strings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -54,11 +52,13 @@ class HomeScreenState extends State<HomeScreen> {
     _loadFavoriteApps();
     _loadDayProgress();
     _getBatteryPercentage();
+    _loadHomeScreenEvents();
 
     refreshTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
       setState(() {
         _getBatteryPercentage();
         _loadDayProgress();
+        _loadHomeScreenEvents();
       });
     });
 
@@ -96,9 +96,11 @@ class HomeScreenState extends State<HomeScreen> {
     // Filter events marked for home screen
     final allEvents =
         eventList.map((e) => Event.fromJson(json.decode(e))).toList();
+
     setState(() {
-      _eventsToShowOnHome =
-          allEvents.where((event) => event.showOnHomeScreen).toList();
+      _eventsToShowOnHome = allEvents
+          .where((event) => event.showOnHomeScreen && !event.isCompleted)
+          .toList();
     });
   }
 
@@ -156,7 +158,7 @@ class HomeScreenState extends State<HomeScreen> {
         SizedBox(height: screenHeight * 0.025),
         statsWidget(),
         progressWidget(),
-        SizedBox(height: screenHeight * 0.075),
+        SizedBox(height: 32.0),
         eventsWidget(),
         Expanded(child: Container()),
         homeScreenApps(),
@@ -236,23 +238,56 @@ class HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  String formatTime(DateTime dateTime) {
+    int hour = dateTime.hour;
+    int minute = dateTime.minute;
+    String period = hour >= 12 ? 'PM' : 'AM';
+
+    hour = hour % 12;
+    hour = hour == 0 ? 12 : hour;
+
+    String time = '$hour:${minute.toString().padLeft(2, '0')} $period';
+
+    String date = '';
+
+    if (dateTime.year == DateTime.now().year &&
+        dateTime.month == DateTime.now().month &&
+        dateTime.day == DateTime.now().day) {
+      date = 'Today';
+    } else if (dateTime.year == DateTime.now().year &&
+        dateTime.month == DateTime.now().month &&
+        dateTime.day == DateTime.now().day + 1) {
+      date = 'Tomorrow';
+    } else {
+      date = '${DateFormat.MMM().format(dateTime)} ${dateTime.day}';
+    }
+
+    return '$date • $time';
+  }
+
   Widget eventsWidget() {
     return _eventsToShowOnHome.isNotEmpty
-        ? ListView.builder(
-            itemCount: _eventsToShowOnHome.length,
-            itemBuilder: (context, index) {
-              final eventItem = _eventsToShowOnHome[index];
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: event(
-                  eventItem.name,
-                  '${eventItem.deadline.month}/${eventItem.deadline.day} ${eventItem.deadline.hour}:${eventItem.deadline.minute.toString().padLeft(2, '0')}',
-                ),
-              );
-            },
+        ? SizedBox(
+            height: 100,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32.0),
+              child: ListView.builder(
+                itemCount: _eventsToShowOnHome.length,
+                itemBuilder: (context, index) {
+                  final eventItem = _eventsToShowOnHome[index];
+                  return event(
+                    eventItem.name,
+                    formatTime(eventItem.deadline),
+                  );
+                },
+              ),
+            ),
           )
         : Center(
-            child: event("Add an event now!", ""),
+            child: event(
+              "Add an event now!",
+              "No events added yet. Add one now!",
+            ),
           );
   }
 

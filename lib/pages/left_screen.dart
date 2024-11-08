@@ -1,5 +1,3 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'dart:io';
 
 import 'package:android_intent_plus/android_intent.dart';
@@ -7,7 +5,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:interactive_slider/interactive_slider.dart';
 import 'package:minimalauncher/pages/settings_page.dart';
 import 'package:minimalauncher/pages/widgets/calendar_view.dart';
 import 'package:minimalauncher/variables/strings.dart';
@@ -29,7 +26,6 @@ class _LeftScreenState extends State<LeftScreen> {
   late SharedPreferences _prefs;
   Color textColor = Colors.black;
   Color selectedColor = Colors.white;
-  Color accentColor = Colors.blue[200]!;
 
   // ignore: non_constant_identifier_names
   String WEATHERMAP_API_KEY = "";
@@ -48,9 +44,6 @@ class _LeftScreenState extends State<LeftScreen> {
   _loadPreferences() async {
     _prefs = await SharedPreferences.getInstance();
 
-    if (!_prefs.containsKey(prefsAccentColor)) {
-      _prefs.setInt(prefsAccentColor, accentColor.value);
-    }
     if (!_prefs.containsKey(prefsSelectedColor)) {
       _prefs.setInt(prefsSelectedColor, selectedColor.value);
     }
@@ -61,7 +54,6 @@ class _LeftScreenState extends State<LeftScreen> {
     setState(() {
       selectedColor = Color(_prefs.getInt(prefsSelectedColor)!);
       textColor = Color(_prefs.getInt(prefsTextColor)!);
-      accentColor = Color(_prefs.getInt(prefsAccentColor)!);
 
       WEATHERMAP_API_KEY = _prefs.getString(prefsWeatherApiKey) ?? "";
       _temperature = _prefs.getString(prefsWeatherTemp) ?? "--";
@@ -299,7 +291,6 @@ class _LeftScreenState extends State<LeftScreen> {
       initialDate: DateTime.now(),
       bgColor: selectedColor,
       textColor: textColor.withOpacity(0.8),
-      accentColor: accentColor,
       fontFamily: fontNormal,
       eventDates: [
         DateTime.now().subtract(const Duration(days: 1)),
@@ -359,7 +350,7 @@ class _LeftScreenState extends State<LeftScreen> {
 
       // Create a detailed weather summary
       String weatherSummary = "$description  •  Feels like $feelsLike°C.\n"
-          "Mmin $minTemp°C  •  Max $maxTemp°C  •  Humidity $humidity%\n"
+          "Min $minTemp°C  •  Max $maxTemp°C  •  Humidity $humidity%\n"
           "Sunrise ${weather.sunrise!.toString().substring(11, 16)}  •  "
           "Sunset ${weather.sunset!.toString().substring(11, 16)}";
 
