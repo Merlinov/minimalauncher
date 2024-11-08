@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:android_intent_plus/android_intent.dart';
@@ -5,6 +6,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:minimalauncher/pages/right_screen.dart';
 import 'package:minimalauncher/pages/settings_page.dart';
 import 'package:minimalauncher/pages/widgets/calendar_view.dart';
 import 'package:minimalauncher/variables/strings.dart';
@@ -27,6 +29,8 @@ class _LeftScreenState extends State<LeftScreen> {
   Color textColor = Colors.black;
   Color selectedColor = Colors.white;
 
+  List<Event> _events = [];
+
   // ignore: non_constant_identifier_names
   String WEATHERMAP_API_KEY = "";
   String _temperature = "--";
@@ -36,6 +40,7 @@ class _LeftScreenState extends State<LeftScreen> {
   @override
   void initState() {
     _loadPreferences();
+    _loadHomeScreenEvents();
 
     super.initState();
   }
@@ -60,6 +65,19 @@ class _LeftScreenState extends State<LeftScreen> {
       _weatherSummary = _prefs.getString(prefsWeatherDesc) ??
           "The weather summary will appear here (click to enter your API key)";
       _weatherLocation = _prefs.getString(prefsWeatherLocation) ?? "Location";
+    });
+  }
+
+  Future<void> _loadHomeScreenEvents() async {
+    final prefs = await SharedPreferences.getInstance();
+    final eventList = prefs.getStringList('events') ?? [];
+
+    // Filter events marked for home screen
+    final allEvents =
+        eventList.map((e) => Event.fromJson(json.decode(e))).toList();
+
+    setState(() {
+      _events = allEvents.where((event) => !event.isCompleted).toList();
     });
   }
 
@@ -292,10 +310,7 @@ class _LeftScreenState extends State<LeftScreen> {
       bgColor: selectedColor,
       textColor: textColor.withOpacity(0.8),
       fontFamily: fontNormal,
-      eventDates: [
-        DateTime.now().subtract(const Duration(days: 1)),
-        DateTime.now().add(const Duration(days: 2)),
-      ],
+      events: _events,
     );
   }
 

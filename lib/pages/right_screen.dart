@@ -79,6 +79,11 @@ class _RightScreenState extends State<RightScreen> {
 
   Future<void> _saveEvents() async {
     final prefs = await SharedPreferences.getInstance();
+
+    // Sort events by deadline (ascending), so closest deadlines come first
+    _events.sort((a, b) => a.deadline.compareTo(b.deadline));
+
+    // Convert sorted events to JSON and save to SharedPreferences
     final eventList = _events.map((e) => json.encode(e.toJson())).toList();
     prefs.setStringList('events', eventList);
   }
@@ -220,7 +225,7 @@ class _RightScreenState extends State<RightScreen> {
                     children: [
                       Expanded(
                         child: Text(
-                          'Deadline: ${deadline.day}/${deadline.month}/${deadline.year}, ${deadline.hour}:${deadline.minute.toString().padLeft(2, '0')}',
+                          'Deadline:  ${_formatDate(deadline)}',
                           style: TextStyle(
                             color: textColor,
                             fontFamily: fontNormal,
