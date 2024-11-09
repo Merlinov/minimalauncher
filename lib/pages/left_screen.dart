@@ -6,8 +6,11 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:installed_apps/installed_apps.dart';
+import 'package:minimalauncher/pages/helpers/app_icon.dart';
 import 'package:minimalauncher/pages/right_screen.dart';
 import 'package:minimalauncher/pages/settings_page.dart';
+import 'package:minimalauncher/pages/widgets/app_drawer.dart';
 import 'package:minimalauncher/pages/widgets/calendar_view.dart';
 import 'package:minimalauncher/variables/strings.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -29,6 +32,9 @@ class _LeftScreenState extends State<LeftScreen> {
   Color textColor = Colors.black;
   Color selectedColor = Colors.white;
 
+  static const int maxQuickApps = 5;
+  List<String?> quickApps = List<String?>.filled(maxQuickApps, null);
+
   List<Event> _events = [];
 
   // ignore: non_constant_identifier_names
@@ -40,6 +46,7 @@ class _LeftScreenState extends State<LeftScreen> {
   @override
   void initState() {
     _loadPreferences();
+    _loadQuickApps();
     _loadHomeScreenEvents();
 
     super.initState();
@@ -68,6 +75,20 @@ class _LeftScreenState extends State<LeftScreen> {
     });
   }
 
+  Future<void> _loadQuickApps() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      quickApps = prefs.getStringList('quick_apps')?.map((e) => e).toList() ??
+          List<String?>.filled(maxQuickApps, null);
+    });
+  }
+
+  Future<void> _saveQuickApps() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(
+        'quick_apps', quickApps.map((e) => e ?? '').toList());
+  }
+
   Future<void> _loadHomeScreenEvents() async {
     final prefs = await SharedPreferences.getInstance();
     final eventList = prefs.getStringList('events') ?? [];
@@ -93,6 +114,33 @@ class _LeftScreenState extends State<LeftScreen> {
     }
   }
 
+  // Quick Apps
+  Future<void> _selectApp(int index) async {
+    final String? selectedPackage = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      builder: (BuildContext context) => AppDrawer(
+        autoFocusSearch: true,
+        bgColor: selectedColor,
+        textColor: textColor,
+      ),
+    );
+
+    if (selectedPackage != null && selectedPackage.isNotEmpty) {
+      setState(() {
+        quickApps[index] = selectedPackage;
+      });
+      await _saveQuickApps();
+    }
+  }
+
+  Future<void> _removeApp(int index) async {
+    setState(() {
+      quickApps[index] = '';
+    });
+    await _saveQuickApps();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -102,10 +150,12 @@ class _LeftScreenState extends State<LeftScreen> {
           quickSettings(context),
           divider(),
           temperatureWidget(context),
-          divider(),
+          // divider(),
           Expanded(child: Container()),
-          divider(),
+          // divider(),
           calendar(),
+          divider(),
+          quickAppsWidget(),
         ],
       ),
     );
@@ -311,6 +361,93 @@ class _LeftScreenState extends State<LeftScreen> {
       textColor: textColor.withOpacity(0.8),
       fontFamily: fontNormal,
       events: _events,
+    );
+  }
+
+  Widget quickAppsWidget() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: GridView.builder(
+        shrinkWrap: true,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 5,
+          mainAxisSpacing: 10.0,
+          crossAxisSpacing: 10.0,
+        ),
+        itemCount: maxQuickApps,
+        itemBuilder: (context, index) {
+          final packageName = quickApps[index];
+          return GestureDetector(
+            onTap: () async {
+              HapticFeedback.mediumImpact();
+              if (packageName == null || packageName == '') {
+                await _selectApp(index);
+              } else {
+                InstalledApps.startApp(packageName);
+              }
+            },
+            onLongPress: packageName != null && packageName != ''
+                ? () async {
+                    HapticFeedback.heavyImpact();
+                    await _removeApp(index);
+                  }
+                : null,
+            child: Padding(
+              padding: const EdgeInsets.all(4.0),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: textColor.withOpacity(0.05),
+                  // color: Colors.red,
+                  borderRadius: BorderRadius.circular(16.0),
+                ),
+                child: Center(
+                  child: packageName == null || packageName == ''
+                      ? Icon(
+                          Icons.add_rounded,
+                          color: textColor.withOpacity(0.3),
+                          size: 42,
+                        )
+                      : FutureBuilder<String>(
+                          future: getAppIcon(packageName),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.done) {
+                              if (snapshot.hasError) {
+                                return Text('Error: ${snapshot.error}');
+                              } else if (snapshot.data != null) {
+                                return ClipRRect(
+                                    borderRadius: BorderRadius.circular(20),
+                                    child: ColorFiltered(
+                                      colorFilter: ColorFilter.mode(
+                                        Colors.black.withOpacity(0.4),
+                                        BlendMode.saturation,
+                                      ),
+                                      child: ColorFiltered(
+                                        colorFilter: ColorFilter.mode(
+                                          textColor,
+                                          BlendMode.color,
+                                        ),
+                                        child: Image.file(
+                                          File(snapshot.data!),
+                                          width: 70,
+                                          height: 70,
+                                        ),
+                                      ),
+                                    ));
+                              } else {
+                                return const Text('?');
+                              }
+                            } else {
+                              return const CircularProgressIndicator();
+                            }
+                          },
+                        ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 

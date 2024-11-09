@@ -106,7 +106,6 @@ class _SettingsPageState extends State<SettingsPage> {
                     preferencesChanged = true;
                   });
                   _savePreferences();
-                  restartApp();
                 },
               ),
               if (!showWallpaper)
@@ -210,7 +209,6 @@ class _SettingsPageState extends State<SettingsPage> {
                 setState(() {
                   if (pickerType == 'background') {
                     selectedColor = color;
-                    restartApp();
                   } else if (pickerType == 'text') {
                     textColor = color;
                   }
@@ -231,9 +229,5 @@ class _SettingsPageState extends State<SettingsPage> {
         );
       },
     );
-  }
-
-  void restartApp() {
-    RestartWidget.restartApp(context);
   }
 }

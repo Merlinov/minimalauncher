@@ -14,3 +14,5 @@ const String prefsWeatherLocation = 'areaname';
 const String prefsWeatherDesc = 'weather';
 
 const String homeStatsSeperator = '   /   ';
+
+const String launcherPackageName = 'com.manbir.minimalauncher';
