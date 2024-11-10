@@ -1,10 +1,13 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:installed_apps/app_info.dart';
 import 'package:installed_apps/installed_apps.dart';
+import 'package:minimalauncher/pages/helpers/app_icon.dart';
 import 'package:minimalauncher/variables/strings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 // import 'package:device_apps/device_apps.dart';
 
 class Application {
@@ -100,6 +103,16 @@ class _AppDrawerState extends State<AppDrawer> {
     installedApps
         .sort((a, b) => b.installedTimestamp.compareTo(a.installedTimestamp));
 
+    // Remove apps with no launch intent
+    // for (int i = installedApps.length - 1; i >= 0; i--) {
+    //   final packageName = installedApps[i].packageName;
+    // final canLaunchApp =
+    //     await canLaunchUrl(Uri.parse("package:$packageName"));
+    // if (installedApps[i].) {
+    //   installedApps.removeAt(i); // Remove app if no launch intent
+    // }
+    // }
+
     // Get list of all apps and only top 10 most recent
     List<Application> allAppsList = installedApps.map((app) {
       return Application(
@@ -171,77 +184,104 @@ class _AppDrawerState extends State<AppDrawer> {
       apps.sort((a, b) => a.name.compareTo(b.name));
       return Scaffold(
         backgroundColor: widget.bgColor,
-        body: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Expanded(
-                child: ListView.builder(
-                  itemCount: apps.length,
-                  itemBuilder: (context, index) {
-                    final app = apps[index];
-
-                    return GestureDetector(
-                      onTap: () {
-                        Navigator.pop(context, app.packageName);
-                      },
-                      onLongPress: () {
-                        HapticFeedback.mediumImpact();
-                        InstalledApps.openSettings(app.packageName);
-                        // Navigator.pop(context, null);
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 2.0, horizontal: 16.0),
-                        child: Expanded(
-                          child: Text(
-                            app.name,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: widget.textColor,
-                              fontSize: 18,
-                              fontFamily: fontNormal,
-                            ),
-                          ),
+        body: Padding(
+          padding: const EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0),
+          child: GridView.builder(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 4,
+              mainAxisSpacing: 15.0,
+              crossAxisSpacing: 15.0,
+              childAspectRatio: 0.7,
+            ),
+            itemCount: apps.length,
+            itemBuilder: (context, index) {
+              final app = apps[index];
+              return GestureDetector(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      FutureBuilder<String?>(
+                        key: UniqueKey(),
+                        future: getAppIcon(app.packageName),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.done) {
+                            if (snapshot.hasError) {
+                              return Text('Error: ${snapshot.error}');
+                            } else if (snapshot.data != null) {
+                              return Image.file(
+                                File(snapshot.data!),
+                                width: 70,
+                                height: 70,
+                              );
+                            } else {
+                              return const Text('App icon path is null.');
+                            }
+                          } else {
+                            return const CircularProgressIndicator();
+                          }
+                        },
+                      ),
+                      Text(
+                        app.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: 'Rubik',
+                          fontSize: 12,
+                          color: textColor,
                         ),
                       ),
-                    );
-                  },
+                    ],
+                  ),
                 ),
-              ),
-            ),
-          ],
+                onTap: () {
+                  Navigator.pop(context, app.packageName);
+                },
+                onLongPress: () {
+                  HapticFeedback.heavyImpact();
+                  InstalledApps.openSettings(app.packageName);
+                },
+              );
+            },
+          ),
         ),
       );
     }
 
     return Scaffold(
+      floatingActionButton: Padding(
+        padding: EdgeInsets.all(8.0),
+        child: SizedBox(
+          width: MediaQuery.of(context).size.width * 0.4,
+          child: FloatingActionButton.extended(
+            onPressed: () {
+              setState(() {
+                showAllApps = true;
+              });
+            },
+            backgroundColor: textColor.withOpacity(0.8),
+            icon: Icon(
+              Icons.grid_view_rounded,
+              color: bgColor,
+            ),
+            label: Text(
+              'All Apps',
+              style: TextStyle(
+                color: bgColor,
+                fontFamily: fontNormal,
+              ),
+            ),
+          ),
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
       backgroundColor: bgColor,
       body: Column(
         children: [
-          // TODO All Apps (grid view + list view)
-          // Expanded(
-          //   child: Center(
-          //     child: GestureDetector(
-          //       onTap: () {
-          //         HapticFeedback.lightImpact();
-          //         setState(() {
-          //           showAllApps = true;
-          //         });
-          //       },
-          //       child: Text(
-          //         "All Apps >",
-          //         style: TextStyle(
-          //           color: textColor,
-          //           fontSize: 18,
-          //           fontFamily: fontNormal,
-          //           fontWeight: FontWeight.bold,
-          //         ),
-          //       ),
-          //     ),
-          //   ),
-          // ),
-
           // Displaying 10 most recently installed apps
           if (recentApps.isNotEmpty && filter.isEmpty)
             Expanded(

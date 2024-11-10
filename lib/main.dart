@@ -1,5 +1,7 @@
 // ignore_for_file: prefer_const_constructors
 
+import 'dart:ui';
+
 import 'package:alarm/alarm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -69,6 +71,9 @@ class _LauncherState extends State<Launcher> {
 
   @override
   Widget build(BuildContext context) {
+    double appDrawerHeight =
+        MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top;
+
     Brightness iconsBrightness =
         ThemeData.estimateBrightnessForColor(selectedColor) == Brightness.dark
             ? Brightness.light
@@ -96,7 +101,7 @@ class _LauncherState extends State<Launcher> {
                   // Swipe down
                   expandNotification();
                 } else if (details.primaryVelocity! < 0) {
-                  openAppDrawer(context);
+                  openAppDrawer(context, appDrawerHeight);
                 }
               },
               onLongPress: () {
@@ -119,17 +124,20 @@ class _LauncherState extends State<Launcher> {
     );
   }
 
-  void openAppDrawer(BuildContext context) async {
+  void openAppDrawer(BuildContext buildContext, double height) async {
     await _loadPreferences();
 
     // Open the app drawer and wait for a package name to be selected
     final String? selectedPackage = await showModalBottomSheet<String>(
-      context: context,
+      context: buildContext,
       isScrollControlled: true,
-      builder: (BuildContext context) => AppDrawer(
-        autoFocusSearch: true,
-        bgColor: selectedColor,
-        textColor: textColor,
+      builder: (BuildContext context) => ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: height),
+        child: AppDrawer(
+          autoFocusSearch: true,
+          bgColor: selectedColor,
+          textColor: textColor,
+        ),
       ),
     );
 

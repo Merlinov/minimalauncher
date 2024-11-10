@@ -55,11 +55,15 @@ class HomeScreenState extends State<HomeScreen> {
     _loadHomeScreenEvents();
 
     refreshTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
-      setState(() {
-        _getBatteryPercentage();
-        _loadDayProgress();
-        _loadHomeScreenEvents();
-      });
+      if (mounted) {
+        setState(() {
+          _getBatteryPercentage();
+          _loadDayProgress();
+          _loadHomeScreenEvents();
+        });
+      } else {
+        timer.cancel();
+      }
     });
 
     super.initState();
@@ -69,7 +73,7 @@ class HomeScreenState extends State<HomeScreen> {
   void dispose() {
     // cancel the timer when the widget is disposed
     refreshTimer.cancel();
-    progressController.dispose();
+    // progressController.dispose();
     super.dispose();
   }
 
@@ -107,6 +111,8 @@ class HomeScreenState extends State<HomeScreen> {
   Future<void> _loadDayProgress() async {
     // Load day start and end times from SharedPreferences
     final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return; // Exit early if the widget is disposed
+
     final startTimeHour = prefs.getInt('dayStartHour') ?? defaultStartTime.hour;
     final startTimeMinute =
         prefs.getInt('dayStartMinute') ?? defaultStartTime.minute;
@@ -116,7 +122,11 @@ class HomeScreenState extends State<HomeScreen> {
     // Calculate and set initial progress
     final startTime = TimeOfDay(hour: startTimeHour, minute: startTimeMinute);
     final endTime = TimeOfDay(hour: endTimeHour, minute: endTimeMinute);
-    _updateDayProgress(startTime, endTime);
+
+    // Ensure widget is still mounted before updating progress
+    if (mounted) {
+      _updateDayProgress(startTime, endTime);
+    }
   }
 
   Future<void> _loadFavoriteApps() async {

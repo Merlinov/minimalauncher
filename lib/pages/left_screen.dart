@@ -397,7 +397,6 @@ class _LeftScreenState extends State<LeftScreen> {
               child: Container(
                 decoration: BoxDecoration(
                   color: textColor.withOpacity(0.05),
-                  // color: Colors.red,
                   borderRadius: BorderRadius.circular(16.0),
                 ),
                 child: Center(
