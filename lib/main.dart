@@ -80,45 +80,52 @@ class _LauncherState extends State<Launcher> {
             : Brightness.dark;
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        backgroundColor: showWallpaper ? Colors.transparent : selectedColor,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          toolbarHeight: 0,
-          systemOverlayStyle: SystemUiOverlayStyle(
-            systemNavigationBarColor:
-                showWallpaper ? Colors.transparent : selectedColor,
-            systemNavigationBarIconBrightness: iconsBrightness,
-            statusBarColor: showWallpaper ? Colors.transparent : selectedColor,
-            statusBarIconBrightness: iconsBrightness,
+      home: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) {
+          _pageController.jumpToPage(1);
+        },
+        child: Scaffold(
+          backgroundColor: showWallpaper ? Colors.transparent : selectedColor,
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            toolbarHeight: 0,
+            systemOverlayStyle: SystemUiOverlayStyle(
+              systemNavigationBarColor:
+                  showWallpaper ? Colors.transparent : selectedColor,
+              systemNavigationBarIconBrightness: iconsBrightness,
+              statusBarColor:
+                  showWallpaper ? Colors.transparent : selectedColor,
+              statusBarIconBrightness: iconsBrightness,
+            ),
           ),
-        ),
-        body: Builder(
-          builder: (context) {
-            return GestureDetector(
-              onVerticalDragEnd: (details) {
-                if (details.primaryVelocity! > 0) {
-                  // Swipe down
-                  expandNotification();
-                } else if (details.primaryVelocity! < 0) {
-                  openAppDrawer(context, appDrawerHeight);
-                }
-              },
-              onLongPress: () {
-                // HapticFeedback.heavyImpact();
-                // Open app settings (now moved to Left Screen)
-              },
-              child: PageView(
-                controller: _pageController,
-                // physics: ,
-                children: [
-                  LeftScreen(),
-                  HomeScreen(key: _homeScreenKey),
-                  RightScreen(),
-                ],
-              ),
-            );
-          },
+          body: Builder(
+            builder: (context) {
+              return GestureDetector(
+                onVerticalDragEnd: (details) {
+                  if (details.primaryVelocity! > 0) {
+                    // Swipe down
+                    expandNotification();
+                  } else if (details.primaryVelocity! < 0) {
+                    openAppDrawer(context, appDrawerHeight);
+                  }
+                },
+                onLongPress: () {
+                  // HapticFeedback.heavyImpact();
+                  // Open app settings (now moved to Left Screen)
+                },
+                child: PageView(
+                  controller: _pageController,
+                  // physics: ,
+                  children: [
+                    LeftScreen(),
+                    HomeScreen(key: _homeScreenKey),
+                    RightScreen(),
+                  ],
+                ),
+              );
+            },
+          ),
         ),
       ),
     );

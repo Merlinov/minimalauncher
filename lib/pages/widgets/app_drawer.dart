@@ -378,11 +378,9 @@ class _AppDrawerState extends State<AppDrawer> {
             children: [
               GestureDetector(
                 onTap: () {
-                  if (searchController.text.isEmpty) {
-                    openAppByPackageName(googlePackageName);
-                  } else {
-                    searchGoogle(searchController.text);
-                  }
+                  HapticFeedback.mediumImpact();
+                  searchGoogle(searchController.text);
+                  Navigator.pop(context, null);
                 },
                 child: Container(
                   decoration: BoxDecoration(
@@ -399,11 +397,9 @@ class _AppDrawerState extends State<AppDrawer> {
               SizedBox(width: 8.0),
               GestureDetector(
                 onTap: () {
-                  if (searchController.text.isEmpty) {
-                    openAppByPackageName(googleplaystorePackageName);
-                  } else {
-                    searchPlayStore(searchController.text);
-                  }
+                  HapticFeedback.mediumImpact();
+                  searchPlayStore(searchController.text);
+                  Navigator.pop(context, null);
                 },
                 child: Container(
                   decoration: BoxDecoration(
@@ -417,8 +413,25 @@ class _AppDrawerState extends State<AppDrawer> {
                   ),
                 ),
               ),
-              // SizedBox(width: 8.0),
-              // TODO search - default browser
+              SizedBox(width: 8.0),
+              GestureDetector(
+                onTap: () {
+                  HapticFeedback.mediumImpact();
+                  searchDefaultBrowser(searchController.text);
+                  Navigator.pop(context, null);
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: textColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(16.0),
+                  ),
+                  child: Image.asset(
+                    'assets/apps/web.png',
+                    width: 40,
+                    color: textColor,
+                  ),
+                ),
+              ),
               SizedBox(width: 16.0),
             ],
           ),
@@ -487,6 +500,14 @@ class _AppDrawerState extends State<AppDrawer> {
     }
     try {
       await _channel.invokeMethod('searchGoogle', {'query': query});
+    } catch (e) {
+      // print('Error invoking searchGoogle method: $e');
+    }
+  }
+
+  Future<void> searchDefaultBrowser(String query) async {
+    try {
+      await _channel.invokeMethod('searchDefaultBrowser', {'query': query});
     } catch (e) {
       // print('Error invoking searchGoogle method: $e');
     }

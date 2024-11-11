@@ -142,6 +142,15 @@ class MainActivity: FlutterActivity() {
                         result.error("MISSING_ARGUMENT", "Query parameter is missing", null)
                     }
                 }
+                "searchDefaultBrowser" -> {
+                    val query = call.argument<String>("query")
+                    if (query != null) {
+                        searchDefaultBrowser(query)
+                        result.success(null)
+                    } else {
+                        result.error("MISSING_ARGUMENT", "Query parameter is missing", null)
+                    }
+                }
                 "openApp" -> {
                     val packageName = call.argument<String>("packageName")
                     if (packageName != null) {
@@ -270,4 +279,24 @@ class MainActivity: FlutterActivity() {
             // Log an error
         }
     }
+
+    private fun searchDefaultBrowser(query: String) {
+        try {
+            val uri = if (query.contains(".")) {
+                // Treat it as a URL
+                Uri.parse(if (query.startsWith("http")) query else "https://$query")
+            } else {
+                // Treat it as a search query
+                val encodedQuery = Uri.encode(query)
+                Uri.parse("https://www.google.com/search?q=$encodedQuery")
+            }
+    
+            val intent = Intent(Intent.ACTION_VIEW, uri)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+        } catch (e: Exception) {
+            // Log an error
+        }
+    }
+    
 }

@@ -49,7 +49,6 @@ dependencies:
   android_intent_plus: ^4.0.3
   wallpaper: ^1.1.3
   alarm: ^4.0.9
-  flutter_launcher_icons: ^0.14.1
 
 dev_dependencies:
   flutter_test:
@@ -79,6 +78,7 @@ flutter:
     - assets/icon.png
     - assets/apps/google.png
     - assets/apps/playstore.png
+    - assets/apps/web.png
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
