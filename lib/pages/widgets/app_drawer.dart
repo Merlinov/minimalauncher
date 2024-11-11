@@ -5,10 +5,10 @@ import 'package:flutter/services.dart';
 import 'package:installed_apps/app_info.dart';
 import 'package:installed_apps/installed_apps.dart';
 import 'package:minimalauncher/pages/helpers/app_icon.dart';
+import 'package:minimalauncher/pages/home_page.dart';
 import 'package:minimalauncher/variables/strings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-// import 'package:device_apps/device_apps.dart';
 
 class Application {
   String name;
@@ -103,17 +103,13 @@ class _AppDrawerState extends State<AppDrawer> {
     installedApps
         .sort((a, b) => b.installedTimestamp.compareTo(a.installedTimestamp));
 
-    // Remove apps with no launch intent
-    // for (int i = installedApps.length - 1; i >= 0; i--) {
-    //   final packageName = installedApps[i].packageName;
-    // final canLaunchApp =
-    //     await canLaunchUrl(Uri.parse("package:$packageName"));
-    // if (installedApps[i].) {
-    //   installedApps.removeAt(i); // Remove app if no launch intent
-    // }
-    // }
+    installedApps = (await Future.wait(installedApps.map((app) async {
+      bool canLaunch = await canLaunchApp(app.packageName);
+      return canLaunch ? app : null;
+    })))
+        .whereType<AppInfo>()
+        .toList();
 
-    // Get list of all apps and only top 10 most recent
     List<Application> allAppsList = installedApps.map((app) {
       return Application(
         name: app.name,
@@ -181,7 +177,7 @@ class _AppDrawerState extends State<AppDrawer> {
           ].toList();
 
     if (showAllApps) {
-      apps.sort((a, b) => a.name.compareTo(b.name));
+      apps.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
       return Scaffold(
         backgroundColor: widget.bgColor,
         body: Padding(
@@ -376,6 +372,57 @@ class _AppDrawerState extends State<AppDrawer> {
                 },
               ),
             ),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              GestureDetector(
+                onTap: () {
+                  if (searchController.text.isEmpty) {
+                    openAppByPackageName(googlePackageName);
+                  } else {
+                    searchGoogle(searchController.text);
+                  }
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: textColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(16.0),
+                  ),
+                  child: Image.asset(
+                    'assets/apps/google.png',
+                    width: 40,
+                    color: textColor,
+                  ),
+                ),
+              ),
+              SizedBox(width: 8.0),
+              GestureDetector(
+                onTap: () {
+                  if (searchController.text.isEmpty) {
+                    openAppByPackageName(googleplaystorePackageName);
+                  } else {
+                    searchPlayStore(searchController.text);
+                  }
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: textColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(16.0),
+                  ),
+                  child: Image.asset(
+                    'assets/apps/playstore.png',
+                    width: 40,
+                    color: textColor,
+                  ),
+                ),
+              ),
+              // SizedBox(width: 8.0),
+              // TODO search - default browser
+              SizedBox(width: 16.0),
+            ],
+          ),
+
           Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: 20.0,
@@ -408,4 +455,50 @@ class _AppDrawerState extends State<AppDrawer> {
       ),
     );
   }
+
+  static Future<bool> canLaunchApp(String packageName) async {
+    try {
+      final bool result = await _channel
+          .invokeMethod('canLaunchApp', {'packageName': packageName});
+      print("$packageName can launch: $result");
+      return result;
+    } on PlatformException catch (e) {
+      print("Error: ${e.message}");
+      return false;
+    }
+  }
+
+  Future<void> searchPlayStore(String query) async {
+    if (query.trim() == "") {
+      openAppByPackageName(googleplaystorePackageName);
+      return;
+    }
+    try {
+      await _channel.invokeMethod('searchPlayStore', {'query': query});
+    } catch (e) {
+      // print('Error invoking search play store method: $e');
+    }
+  }
+
+  Future<void> searchGoogle(String query) async {
+    if (query.trim() == "") {
+      openAppByPackageName(googlePackageName);
+      return;
+    }
+    try {
+      await _channel.invokeMethod('searchGoogle', {'query': query});
+    } catch (e) {
+      // print('Error invoking searchGoogle method: $e');
+    }
+  }
+
+  Future<void> openAppByPackageName(String packageName) async {
+    try {
+      await _channel.invokeMethod('openApp', {'packageName': packageName});
+    } catch (e) {
+      // print('error in launching app $e');
+    }
+  }
+
+  static const MethodChannel _channel = MethodChannel('main_channel');
 }

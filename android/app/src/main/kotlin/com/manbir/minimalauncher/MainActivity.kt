@@ -72,15 +72,6 @@ class MainActivity: FlutterActivity() {
                         result.error("MISSING_PACKAGE_NAME", "Package name not provided", null)
                     }
                 }
-                "searchGoogle" -> {
-                    val query = call.argument<String>("query")
-                    if (query != null) {
-                        searchGoogle(query)
-                        result.success(null)
-                    } else {
-                        result.error("MISSING_ARGUMENT", "Query parameter is missing", null)
-                    }
-                }
                 "showClock" -> {
                     val packageManager = applicationContext.packageManager
                     val alarmClockIntent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)
@@ -124,6 +115,42 @@ class MainActivity: FlutterActivity() {
                         result.error("UNAVAILABLE", "Clock app not found", null)
                     }
                 }
+                "canLaunchApp" -> {
+                    val packageName: String? = call.argument("packageName")
+                    if (packageName != null) {
+                        val canLaunch = canLaunchApp(packageName)
+                        result.success(canLaunch)
+                    } else {
+                        result.error("INVALID_ARGUMENT", "Package name is null", null)
+                    }
+                }
+                "searchGoogle" -> {
+                    val query = call.argument<String>("query")
+                    if (query != null) {
+                        searchGoogle(query)
+                        result.success(null)
+                    } else {
+                        result.error("MISSING_ARGUMENT", "Query parameter is missing", null)
+                    }
+                }
+                "searchPlayStore" -> {
+                    val query = call.argument<String>("query")
+                    if (query != null) {
+                        searchPlayStore(query)
+                        result.success(null)
+                    } else {
+                        result.error("MISSING_ARGUMENT", "Query parameter is missing", null)
+                    }
+                }
+                "openApp" -> {
+                    val packageName = call.argument<String>("packageName")
+                    if (packageName != null) {
+                        openApp(packageName)
+                        result.success(null)
+                    } else {
+                        result.error("MISSING_PACKAGE_NAME", "Package name not provided", null)
+                    }
+                }
                 else -> {
                     result.notImplemented()
                     Log.d(TAG, "Error: No method found for ${call.method}!")
@@ -142,14 +169,25 @@ class MainActivity: FlutterActivity() {
         }
     }
 
-    private fun searchGoogle(query: String) {
+    private fun openApp(packageName: String) {
+        val packageManager: PackageManager = packageManager
+
         try {
-            val intent = Intent(Intent.ACTION_WEB_SEARCH)
-            intent.putExtra(SearchManager.QUERY, query)
-            intent.setPackage("com.google.android.googlequicksearchbox")
-            startActivity(intent)
+            val intent: Intent? = packageManager.getLaunchIntentForPackage(packageName)
+
+            if (intent != null) {
+                // The app exists, so launch it
+                startActivity(intent)
+            } else {
+                // The app is not installed, open the app page on the Play Store
+                val playStoreIntent = Intent(
+                    Intent.ACTION_VIEW,
+                    Uri.parse("market://details?id=$packageName")
+                )
+                startActivity(playStoreIntent)
+            }
         } catch (e: Exception) {
-            // Log an error
+            e.printStackTrace()
         }
     }
 
@@ -200,6 +238,36 @@ class MainActivity: FlutterActivity() {
         } catch (e: Exception) {
             e.printStackTrace()
             return null
+        }
+    }
+
+    private fun canLaunchApp(packageName: String): Boolean {
+        val packageManager = packageManager
+        val intent = packageManager.getLaunchIntentForPackage(packageName)
+        return intent != null
+    }
+
+    private fun searchGoogle(query: String) {
+        try {
+            val intent = Intent(Intent.ACTION_WEB_SEARCH)
+            intent.putExtra(SearchManager.QUERY, query)
+            intent.setPackage("com.google.android.googlequicksearchbox")
+            startActivity(intent)
+        } catch (e: Exception) {
+            // Log an error
+        }
+    }
+
+    private fun searchPlayStore(query: String) {
+        try {
+            val encodedQuery = Uri.encode(query)
+            val uri = Uri.parse("https://play.google.com/store/search?q=$encodedQuery")
+            val intent = Intent(Intent.ACTION_VIEW, uri)
+            intent.setPackage("com.android.vending") // Package name of Google Play Store app
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+        } catch (e: Exception) {
+            // Log an error
         }
     }
 }
