@@ -249,7 +249,9 @@ class _CustomCalendarViewState extends State<CustomCalendarView> {
                   height: 30,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: widget.textColor,
+                    color: currentDate.day == DateTime.now().day
+                        ? widget.textColor.withOpacity(0.5)
+                        : widget.textColor,
                   ),
                 ),
               Text(
