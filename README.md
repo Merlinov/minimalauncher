@@ -1,5 +1,5 @@
-_minimalauncher_ is an Android Launcher app 🚀 with a minimal interface, providing a clean and distraction-free experience 🌟.
-This app is designed with simplicity and efficiency in mind, to keep you focused on what truly matters ⌚.
+_minimalauncher_ is an Android Launcher app 🚀 with a minimal interface, providing a clean and distraction-free experience 🌟
+It is designed with simplicity and efficiency in mind, to keep you focused on what truly matters ⌚
 
 ## Download
 
