@@ -28,6 +28,7 @@ import android.graphics.drawable.AdaptiveIconDrawable
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.LayerDrawable
 import java.io.File
+import java.util.Date
 import java.io.FileOutputStream
 
 class MainActivity: FlutterActivity() {
@@ -58,6 +59,19 @@ class MainActivity: FlutterActivity() {
                 "expandNotis" -> {
                     NotificationExpander(this).expand()
                     result.success(null)
+                }
+                "getAppInstallTime" -> {
+                    val packageName = call.argument<String>("packageName")
+                    if (packageName != null) {
+                        val installTime = getAppInstallTime(packageName)
+                        if (installTime != null) {
+                            result.success(installTime) // Return the install time in milliseconds
+                        } else {
+                            result.error("NOT_FOUND", "Package not found", null)
+                        }
+                    } else {
+                        result.error("MISSING_PACKAGE_NAME", "Package name not provided", null)
+                    }
                 }
                 "changeLauncher" -> {
                     changeLauncher()
@@ -299,4 +313,14 @@ class MainActivity: FlutterActivity() {
         }
     }
     
+    private fun getAppInstallTime(packageName: String): Long? {
+        return try {
+            val packageManager: PackageManager = packageManager
+            val packageInfo = packageManager.getPackageInfo(packageName, 0)
+            packageInfo.firstInstallTime
+        } catch (e: PackageManager.NameNotFoundException) {
+            e.printStackTrace()
+            null
+        }
+    }    
 }

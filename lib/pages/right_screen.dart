@@ -44,8 +44,8 @@ class RightScreen extends StatefulWidget {
 
 class _RightScreenState extends State<RightScreen> {
   List<Event> _events = [];
-  Color selectedColor = Colors.white;
-  Color textColor = Colors.black;
+  Color selectedColor = Colors.transparent;
+  Color textColor = Colors.transparent;
 
   @override
   void initState() {
@@ -164,11 +164,10 @@ class _RightScreenState extends State<RightScreen> {
     return '$date • $time';
   }
 
-  void _showAddEventDialog() {
+  void showAddEventDialog(DateTime deadline) {
     // Move the variables outside the builder to retain their values
     String name = '';
     String description = '';
-    DateTime deadline = DateTime.now();
     bool showOnHomeScreen = false;
 
     showModalBottomSheet(
@@ -194,6 +193,11 @@ class _RightScreenState extends State<RightScreen> {
                   ),
                   TextField(
                     autofocus: true,
+                    cursorColor: textColor,
+                    style: TextStyle(
+                      color: textColor,
+                      fontFamily: fontNormal,
+                    ),
                     decoration: InputDecoration(
                       labelText: 'Event Name',
                       labelStyle: TextStyle(
@@ -208,6 +212,11 @@ class _RightScreenState extends State<RightScreen> {
                     },
                   ),
                   TextField(
+                    cursorColor: textColor,
+                    style: TextStyle(
+                      color: textColor,
+                      fontFamily: fontNormal,
+                    ),
                     decoration: InputDecoration(
                       labelText: 'Description',
                       labelStyle: TextStyle(
@@ -458,7 +467,9 @@ class _RightScreenState extends State<RightScreen> {
       floatingActionButton: SizedBox(
         width: MediaQuery.of(context).size.width * 0.4,
         child: FloatingActionButton.extended(
-          onPressed: _showAddEventDialog,
+          onPressed: () {
+            showAddEventDialog(DateTime.now());
+          },
           backgroundColor: textColor,
           icon: Icon(
             Icons.add_rounded,

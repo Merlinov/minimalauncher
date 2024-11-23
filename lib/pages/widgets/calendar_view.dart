@@ -58,40 +58,42 @@ class _CustomCalendarViewState extends State<CustomCalendarView> {
       builder: (context) {
         return Container(
           padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                "Events on ${DateFormat('MMM dd, yyyy').format(date)}",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: widget.fontFamily,
-                  color: widget.textColor,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  "Events on ${DateFormat('MMM dd, yyyy').format(date)}",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: widget.fontFamily,
+                    color: widget.textColor,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 10),
-              ...eventsOnThisDay.map((event) => ListTile(
-                    title: Text(
-                      event.name,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontFamily: widget.fontFamily,
-                        color: widget.textColor,
+                const SizedBox(height: 10),
+                ...eventsOnThisDay.map((event) => ListTile(
+                      title: Text(
+                        event.name,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontFamily: widget.fontFamily,
+                          color: widget.textColor,
+                        ),
                       ),
-                    ),
-                    subtitle: Text(
-                      "${event.description}\n${_formatDate(event.deadline)}",
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontFamily: widget.fontFamily,
-                        color: widget.textColor.withOpacity(0.7),
+                      subtitle: Text(
+                        "${event.description}\n${_formatDate(event.deadline)}",
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontFamily: widget.fontFamily,
+                          color: widget.textColor.withOpacity(0.7),
+                        ),
                       ),
-                    ),
-                  )),
-              if (eventsOnThisDay.isEmpty) const Text("No events for this day"),
-              Expanded(child: Container()),
-            ],
+                    )),
+                if (eventsOnThisDay.isEmpty)
+                  const Text("No events for this day"),
+              ],
+            ),
           ),
         );
       },
@@ -245,13 +247,24 @@ class _CustomCalendarViewState extends State<CustomCalendarView> {
             children: [
               if (hasEvent)
                 Container(
-                  width: 30,
-                  height: 30,
+                  width: 35,
+                  height: 35,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: currentDate.day == DateTime.now().day
-                        ? widget.textColor.withOpacity(0.5)
-                        : widget.textColor,
+                    color: widget.textColor,
+                  ),
+                ),
+              if (!hasEvent)
+                Container(
+                  width: 35,
+                  height: 35,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: currentDate.day == DateTime.now().day &&
+                            currentDate.month == DateTime.now().month &&
+                            currentDate.year == DateTime.now().year
+                        ? widget.textColor.withOpacity(0.35)
+                        : Colors.transparent,
                   ),
                 ),
               Text(
@@ -259,7 +272,13 @@ class _CustomCalendarViewState extends State<CustomCalendarView> {
                 style: TextStyle(
                   fontSize: 17,
                   fontFamily: widget.fontFamily,
-                  color: hasEvent ? widget.bgColor : widget.textColor,
+                  color: hasEvent
+                      ? widget.bgColor
+                      : (currentDate.day == DateTime.now().day &&
+                              currentDate.month == DateTime.now().month &&
+                              currentDate.year == DateTime.now().year
+                          ? widget.bgColor
+                          : widget.textColor),
                 ),
               ),
             ],

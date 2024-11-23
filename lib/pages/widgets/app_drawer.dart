@@ -5,21 +5,24 @@ import 'package:flutter/services.dart';
 import 'package:installed_apps/app_info.dart';
 import 'package:installed_apps/installed_apps.dart';
 import 'package:minimalauncher/pages/helpers/app_icon.dart';
-import 'package:minimalauncher/pages/home_page.dart';
 import 'package:minimalauncher/variables/strings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class Application {
   String name;
   String packageName;
+  DateTime? installTime;
 
-  Application({required this.name, required this.packageName});
+  Application(
+      {required this.name,
+      required this.packageName,
+      required this.installTime});
 
   factory Application.fromJson(Map<String, dynamic> json) {
     return Application(
       name: json['name'],
       packageName: json['packageName'],
+      installTime: DateTime.parse(json['installTime']),
     );
   }
 
@@ -27,6 +30,7 @@ class Application {
     return {
       'name': name,
       'packageName': packageName,
+      'installTime': installTime!.toIso8601String(),
     };
   }
 }
@@ -95,13 +99,26 @@ class _AppDrawerState extends State<AppDrawer> {
     _fetchAndCacheApps();
   }
 
+  Future<DateTime?> getInstallTime(String packageName) async {
+    try {
+      final int? timestamp = await _channel
+          .invokeMethod('getAppInstallTime', {'packageName': packageName});
+      return timestamp != null
+          ? DateTime.fromMillisecondsSinceEpoch(timestamp)
+          : null;
+    } catch (e) {
+      print('Error getting install time: $e');
+      return null;
+    }
+  }
+
   Future<void> _fetchAndCacheApps() async {
     List<AppInfo> installedApps =
         await InstalledApps.getInstalledApps(false, false);
 
     // Sort the apps by install time (most recent first)
-    installedApps
-        .sort((a, b) => b.installedTimestamp.compareTo(a.installedTimestamp));
+    // installedApps
+    //     .sort((a, b) => b.installedTimestamp.compareTo(a.installedTimestamp));
 
     installedApps = (await Future.wait(installedApps.map((app) async {
       bool canLaunch = await canLaunchApp(app.packageName);
@@ -110,12 +127,20 @@ class _AppDrawerState extends State<AppDrawer> {
         .whereType<AppInfo>()
         .toList();
 
-    List<Application> allAppsList = installedApps.map((app) {
+    List<Application> allAppsList =
+        await Future.wait(installedApps.map((app) async {
+      DateTime? installTime = await getInstallTime(app.packageName);
       return Application(
         name: app.name,
         packageName: app.packageName,
+        installTime: installTime,
       );
-    }).toList();
+    }));
+
+    allAppsList.sort((a, b) =>
+        b.installTime?.compareTo(
+            a.installTime ?? DateTime.fromMillisecondsSinceEpoch(0)) ??
+        0);
 
     List<Application> recentAppsList =
         allAppsList.take(10).toList().reversed.toList();

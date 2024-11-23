@@ -152,7 +152,7 @@ class _LeftScreenState extends State<LeftScreen> {
           temperatureWidget(context),
           // divider(),
           Expanded(child: Container()),
-          // divider(),
+          divider(),
           calendar(),
           divider(),
           quickAppsWidget(),
@@ -169,23 +169,27 @@ class _LeftScreenState extends State<LeftScreen> {
   }
 
   Widget quickSettings(BuildContext buildContext) {
-    double borderRadius = 18.0;
+    double borderRadius = 16.0;
+    double padding = 8.0;
+    double iconSize = 32.0;
+    Color bgColor = textColor.withOpacity(0.9);
+    Color iconColor = selectedColor;
     return SizedBox(
-      height: MediaQuery.of(buildContext).size.height * 0.1,
+      height: MediaQuery.of(buildContext).size.height * 0.09,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           Container(
             decoration: BoxDecoration(
-              color: textColor.withOpacity(0.05),
+              color: bgColor,
               borderRadius: BorderRadius.circular(borderRadius),
             ),
-            padding: const EdgeInsets.all(8.0),
+            padding: EdgeInsets.all(padding),
             child: GestureDetector(
               child: Icon(
                 Icons.wallpaper_rounded,
-                size: 36,
-                color: textColor.withOpacity(0.9),
+                size: iconSize,
+                color: iconColor,
               ),
               onTap: () {
                 HapticFeedback.mediumImpact();
@@ -195,15 +199,15 @@ class _LeftScreenState extends State<LeftScreen> {
           ),
           Container(
             decoration: BoxDecoration(
-              color: textColor.withOpacity(0.05),
+              color: bgColor,
               borderRadius: BorderRadius.circular(borderRadius),
             ),
-            padding: const EdgeInsets.all(8.0),
+            padding: EdgeInsets.all(padding),
             child: GestureDetector(
               child: Icon(
                 Icons.rocket_rounded,
-                color: textColor.withOpacity(0.9),
-                size: 36,
+                color: iconColor,
+                size: iconSize,
               ),
               onTap: () {
                 HapticFeedback.mediumImpact();
@@ -213,15 +217,15 @@ class _LeftScreenState extends State<LeftScreen> {
           ),
           Container(
             decoration: BoxDecoration(
-              color: textColor.withOpacity(0.05),
+              color: bgColor,
               borderRadius: BorderRadius.circular(borderRadius),
             ),
-            padding: const EdgeInsets.all(8.0),
+            padding: EdgeInsets.all(padding),
             child: GestureDetector(
               child: Icon(
                 Icons.settings_suggest_rounded,
-                color: textColor.withOpacity(0.9),
-                size: 36,
+                color: iconColor,
+                size: iconSize,
               ),
               onTap: () {
                 HapticFeedback.mediumImpact();
@@ -231,10 +235,9 @@ class _LeftScreenState extends State<LeftScreen> {
                     builder: (context) => SettingsPage(),
                   ),
                 ).then((value) {
-                  // Check if preferences have been changed
                   if (value == true) {
                     setState(() {
-                      _loadPreferences(); // Reload preferences to reflect changes in the clock
+                      _loadPreferences();
                     });
                   }
                 });
@@ -243,15 +246,15 @@ class _LeftScreenState extends State<LeftScreen> {
           ),
           Container(
             decoration: BoxDecoration(
-              color: textColor.withOpacity(0.05),
+              color: bgColor,
               borderRadius: BorderRadius.circular(borderRadius),
             ),
-            padding: const EdgeInsets.all(8.0),
+            padding: EdgeInsets.all(padding),
             child: GestureDetector(
               child: Icon(
                 Icons.settings_rounded,
-                color: textColor.withOpacity(0.9),
-                size: 36,
+                color: iconColor,
+                size: iconSize,
               ),
               onTap: () async {
                 HapticFeedback.mediumImpact();
