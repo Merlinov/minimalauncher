@@ -11,12 +11,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 class Application {
   String name;
   String packageName;
+  bool hasNotification;
   DateTime? installTime;
 
   Application(
       {required this.name,
       required this.packageName,
-      required this.installTime});
+      required this.installTime,
+      this.hasNotification = false});
 
   factory Application.fromJson(Map<String, dynamic> json) {
     return Application(

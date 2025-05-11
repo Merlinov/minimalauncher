@@ -217,6 +217,7 @@ class _RightScreenState extends State<RightScreen> {
                       color: textColor,
                       fontFamily: fontNormal,
                     ),
+                    maxLines: 50,
                     decoration: InputDecoration(
                       labelText: 'Description',
                       labelStyle: TextStyle(
