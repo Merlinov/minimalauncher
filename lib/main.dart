@@ -116,7 +116,7 @@ class _LauncherState extends State<Launcher> {
                 },
                 child: PageView(
                   controller: _pageController,
-                  // physics: ,
+                  physics: BouncingScrollPhysics(),
                   children: [
                     LeftScreen(),
                     HomeScreen(key: _homeScreenKey),

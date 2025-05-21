@@ -47,9 +47,9 @@ dependencies:
   installed_apps: ^1.5.0
   interactive_slider: ^0.4.0
   android_intent_plus: ^4.0.3
-  wallpaper: ^1.1.3
+  # wallpaper: ^1.1.3
   alarm: ^4.0.9
-  notification_listener: ^1.0.2+1
+  wallpaper_manager_flutter: ^1.0.1
 
 
 dev_dependencies:

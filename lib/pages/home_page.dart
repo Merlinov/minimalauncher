@@ -12,7 +12,7 @@ import 'package:intl/intl.dart';
 import 'package:minimalauncher/pages/right_screen.dart';
 import 'package:minimalauncher/pages/widgets/app_drawer.dart';
 import 'package:minimalauncher/variables/strings.dart';
-import 'package:notification_listener/notification_listener.dart';
+// import 'package:notification_listener/notification_listener.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -40,7 +40,7 @@ class HomeScreenState extends State<HomeScreen> {
   List<Event> _eventsToShowOnHome = [];
 
   Timer? _pollingTimer;
-  final Set<String> _activeNotifications = {};
+  // final Set<String> _activeNotifications = {};
 
   void refresh() {
     setState(() {
@@ -54,8 +54,8 @@ class HomeScreenState extends State<HomeScreen> {
   void initState() {
     _loadPreferences();
     _loadFavoriteApps();
-    _initializeNotificationListener();
-    _startPolling();
+    // _initializeNotificationListener();
+    // _startPolling();
     _loadDayProgress();
     _getBatteryPercentage();
     _loadHomeScreenEvents();
@@ -136,6 +136,7 @@ class HomeScreenState extends State<HomeScreen> {
     }
   }
 
+/*
   void _initializeNotificationListener() async {
     bool isGranted = await AndroidNotificationListener.isGranted();
     if (!isGranted) {
@@ -187,7 +188,7 @@ class HomeScreenState extends State<HomeScreen> {
       }
     });
   }
-
+*/
   Future<void> _loadFavoriteApps() async {
     final prefs = await SharedPreferences.getInstance();
     final String? cachedFavorites = prefs.getString('favoriteApps');

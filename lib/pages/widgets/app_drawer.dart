@@ -500,10 +500,10 @@ class _AppDrawerState extends State<AppDrawer> {
     try {
       final bool result = await _channel
           .invokeMethod('canLaunchApp', {'packageName': packageName});
-      print("$packageName can launch: $result");
+      // print("$packageName can launch: $result");
       return result;
     } on PlatformException catch (e) {
-      print("Error: ${e.message}");
+      // print("Error: ${e.message}");
       return false;
     }
   }

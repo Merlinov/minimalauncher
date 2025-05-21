@@ -15,7 +15,8 @@ import 'package:minimalauncher/pages/widgets/calendar_view.dart';
 import 'package:minimalauncher/variables/strings.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:wallpaper/wallpaper.dart';
+import 'package:wallpaper_manager_flutter/wallpaper_manager_flutter.dart';
+// import 'package:wallpaper/wallpaper.dart';
 import 'package:weather/weather.dart';
 
 class LeftScreen extends StatefulWidget {
@@ -57,10 +58,10 @@ class _LeftScreenState extends State<LeftScreen> {
     _prefs = await SharedPreferences.getInstance();
 
     if (!_prefs.containsKey(prefsSelectedColor)) {
-      _prefs.setInt(prefsSelectedColor, selectedColor.value);
+      _prefs.setInt(prefsSelectedColor, selectedColor.toARGB32());
     }
     if (!_prefs.containsKey(prefsTextColor)) {
-      _prefs.setInt(prefsTextColor, textColor.value);
+      _prefs.setInt(prefsTextColor, textColor.toARGB32());
     }
 
     setState(() {
@@ -164,7 +165,7 @@ class _LeftScreenState extends State<LeftScreen> {
   Widget divider() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Divider(color: textColor.withOpacity(0.2)),
+      child: Divider(color: textColor.withAlpha(51)),
     );
   }
 
@@ -172,7 +173,7 @@ class _LeftScreenState extends State<LeftScreen> {
     double borderRadius = 16.0;
     double padding = 8.0;
     double iconSize = 32.0;
-    Color bgColor = textColor.withOpacity(0.9);
+    Color bgColor = textColor.withAlpha(230);
     Color iconColor = selectedColor;
     return SizedBox(
       height: MediaQuery.of(buildContext).size.height * 0.09,
@@ -281,7 +282,7 @@ class _LeftScreenState extends State<LeftScreen> {
         onTap: () {
           setState(() {
             _temperature = "--";
-            _getWeather();
+            _getWeather(buildContext);
           });
         },
         onLongPress: () {
@@ -294,7 +295,7 @@ class _LeftScreenState extends State<LeftScreen> {
             children: [
               Icon(
                 Icons.thermostat_rounded,
-                color: textColor.withOpacity(0.9),
+                color: textColor.withAlpha(230),
                 size: 36,
               ),
               Container(width: 10),
@@ -331,7 +332,7 @@ class _LeftScreenState extends State<LeftScreen> {
                     style: TextStyle(
                       fontFamily: fontNormal,
                       fontSize: 14,
-                      color: textColor.withOpacity(0.8),
+                      color: textColor.withAlpha(204),
                       height: 1.25,
                     ),
                   ),
@@ -343,7 +344,7 @@ class _LeftScreenState extends State<LeftScreen> {
                       style: TextStyle(
                         fontFamily: fontNormal,
                         fontSize: 11,
-                        color: textColor.withOpacity(0.8),
+                        color: textColor.withAlpha(204),
                         height: 1.25,
                       ),
                     ),
@@ -361,7 +362,7 @@ class _LeftScreenState extends State<LeftScreen> {
     return CustomCalendarView(
       initialDate: DateTime.now(),
       bgColor: selectedColor,
-      textColor: textColor.withOpacity(0.8),
+      textColor: textColor.withAlpha(204),
       fontFamily: fontNormal,
       events: _events,
     );
@@ -399,14 +400,14 @@ class _LeftScreenState extends State<LeftScreen> {
               padding: const EdgeInsets.all(4.0),
               child: Container(
                 decoration: BoxDecoration(
-                  color: textColor.withOpacity(0.05),
+                  color: textColor.withAlpha(13),
                   borderRadius: BorderRadius.circular(16.0),
                 ),
                 child: Center(
                   child: packageName == null || packageName == ''
                       ? Icon(
                           Icons.add_rounded,
-                          color: textColor.withOpacity(0.3),
+                          color: textColor.withAlpha(76),
                           size: 42,
                         )
                       : FutureBuilder<String>(
@@ -421,7 +422,7 @@ class _LeftScreenState extends State<LeftScreen> {
                                     borderRadius: BorderRadius.circular(20),
                                     child: ColorFiltered(
                                       colorFilter: ColorFilter.mode(
-                                        Colors.black.withOpacity(0.4),
+                                        Colors.black.withAlpha(102),
                                         BlendMode.saturation,
                                       ),
                                       child: ColorFiltered(
@@ -462,20 +463,77 @@ class _LeftScreenState extends State<LeftScreen> {
     if (result != null) {
       file = File(result.files.single.path!);
     } else {
-      ScaffoldMessenger.of(buildContext).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'no wallpaper selected',
+      if (buildContext.mounted) {
+        ScaffoldMessenger.of(buildContext).showSnackBar(
+          const SnackBar(
+            content: Text('No wallpaper selected'),
           ),
-        ),
-      );
+        );
+      }
       return;
     }
 
-    Wallpaper.bothScreen(imageName: file.path);
+    if (!buildContext.mounted) return;
+
+    // Show bottom sheet for screen selection
+    showModalBottomSheet(
+      context: buildContext,
+      builder: (context) {
+        return SizedBox(
+          height: 200,
+          child: Column(
+            children: [
+              ListTile(
+                title: const Text('Home Screen'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _applyWallpaper(
+                      file, WallpaperManagerFlutter.homeScreen, buildContext);
+                },
+              ),
+              ListTile(
+                title: const Text('Lock Screen'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _applyWallpaper(
+                      file, WallpaperManagerFlutter.lockScreen, buildContext);
+                },
+              ),
+              ListTile(
+                title: const Text('Both'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _applyWallpaper(
+                      file, WallpaperManagerFlutter.bothScreens, buildContext);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
-  Future<void> _getWeather() async {
+  Future<void> _applyWallpaper(
+      File file, int location, BuildContext buildContext) async {
+    try {
+      final wmf = WallpaperManagerFlutter();
+      await wmf.setWallpaper(file, location);
+      if (buildContext.mounted) {
+        ScaffoldMessenger.of(buildContext).showSnackBar(
+          const SnackBar(content: Text('Wallpaper applied')),
+        );
+      }
+    } catch (e) {
+      if (buildContext.mounted) {
+        ScaffoldMessenger.of(buildContext).showSnackBar(
+          SnackBar(content: Text('Failed: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _getWeather(BuildContext buildContext) async {
     try {
       if (!await Permission.location.isGranted) {
         await Permission.location.request();
@@ -516,74 +574,76 @@ class _LeftScreenState extends State<LeftScreen> {
         _loadPreferences();
       });
     } catch (e) {
-      showModalBottomSheet(
-        context: context,
-        backgroundColor: selectedColor,
-        builder: (BuildContext context) {
-          return SizedBox(
-            width: double.maxFinite,
-            child: Column(
-              children: [
-                const SizedBox(height: 16.0),
-                Text(
-                  "Enter your OpenWeather API:",
-                  style: TextStyle(
-                    fontFamily: fontNormal,
-                    fontSize: 20,
-                    color: textColor.withOpacity(0.8),
-                  ),
-                ),
-                const SizedBox(height: 8.0),
-                Container(
-                  margin: const EdgeInsets.all(16.0),
-                  child: TextField(
-                    controller: weatherApiKeyController,
+      if (buildContext.mounted) {
+        showModalBottomSheet(
+          context: buildContext,
+          backgroundColor: selectedColor,
+          builder: (BuildContext context) {
+            return SizedBox(
+              width: double.maxFinite,
+              child: Column(
+                children: [
+                  const SizedBox(height: 16.0),
+                  Text(
+                    "Enter your OpenWeather API:",
                     style: TextStyle(
                       fontFamily: fontNormal,
-                      fontSize: 16,
-                      color: textColor,
-                    ),
-                    onTap: () {
-                      weatherApiKeyController.text = WEATHERMAP_API_KEY;
-                    },
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16.0),
-                      ),
+                      fontSize: 20,
+                      color: textColor.withAlpha(204),
                     ),
                   ),
-                ),
-                const SizedBox(height: 16.0),
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      savePrefs(
-                          prefsWeatherApiKey, weatherApiKeyController.text);
-                      _loadPreferences();
-                    });
-                    Navigator.pop(context);
-                  },
-                  style: ButtonStyle(
-                    backgroundColor: WidgetStateProperty.all(textColor),
-                    foregroundColor: WidgetStateProperty.all(selectedColor),
-                  ),
-                  child: const Padding(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
-                    child: Text(
-                      'Save API Key',
+                  const SizedBox(height: 8.0),
+                  Container(
+                    margin: const EdgeInsets.all(16.0),
+                    child: TextField(
+                      controller: weatherApiKeyController,
                       style: TextStyle(
                         fontFamily: fontNormal,
                         fontSize: 16,
+                        color: textColor,
+                      ),
+                      onTap: () {
+                        weatherApiKeyController.text = WEATHERMAP_API_KEY;
+                      },
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16.0),
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          );
-        },
-      );
+                  const SizedBox(height: 16.0),
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        savePrefs(
+                            prefsWeatherApiKey, weatherApiKeyController.text);
+                        _loadPreferences();
+                      });
+                      Navigator.pop(context);
+                    },
+                    style: ButtonStyle(
+                      backgroundColor: WidgetStateProperty.all(textColor),
+                      foregroundColor: WidgetStateProperty.all(selectedColor),
+                    ),
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 12.0, vertical: 12.0),
+                      child: Text(
+                        'Save API Key',
+                        style: TextStyle(
+                          fontFamily: fontNormal,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      }
     }
   }
 

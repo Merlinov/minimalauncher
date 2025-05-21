@@ -1,4 +1,4 @@
-package com.manbir.minimalauncher
+package com.example.minimalauncher
 
 import android.content.Context
 import android.os.Build
