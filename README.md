@@ -5,6 +5,9 @@ It is designed with simplicity and efficiency in mind, to keep you focused on wh
 
 <a href="https://github.com/0-manbir/minimalauncher/releases/latest/download/minimalauncher.apk" target="_blank">Download Latest Release</a><br><br>
 
+![minimalauncher](https://github.com/user-attachments/assets/9d02f100-c563-45b3-a576-def4af99618e)
+
+
 ## Features
 
 ### Home
