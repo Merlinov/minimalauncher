@@ -145,7 +145,7 @@ class _AppDrawerState extends State<AppDrawer> {
         0);
 
     List<Application> recentAppsList =
-        allAppsList.take(10).toList().reversed.toList();
+        allAppsList.take(5).toList().reversed.toList();
 
     // Cache both full app list and recent apps
     final prefs = await SharedPreferences.getInstance();
@@ -305,7 +305,7 @@ class _AppDrawerState extends State<AppDrawer> {
       backgroundColor: bgColor,
       body: Column(
         children: [
-          // Displaying 10 most recently installed apps
+          // Displaying 5 most recently installed apps
           if (recentApps.isNotEmpty && filter.isEmpty)
             Expanded(
               flex: 4,
@@ -411,7 +411,7 @@ class _AppDrawerState extends State<AppDrawer> {
                 },
                 child: Container(
                   decoration: BoxDecoration(
-                    color: textColor.withOpacity(0.1),
+                    color: textColor.withAlpha(25),
                     borderRadius: BorderRadius.circular(16.0),
                   ),
                   child: Image.asset(

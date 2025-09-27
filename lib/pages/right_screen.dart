@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:minimalauncher/variables/strings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:minimalauncher/pages/widgets/calendar_view.dart';
 import 'dart:convert';
 
 class Event {
@@ -344,128 +345,137 @@ class _RightScreenState extends State<RightScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: selectedColor,
-      body: _events.isEmpty
-          ? Center(
-              child: Text(
-                'No events added yet.',
-                style: TextStyle(
-                  color: textColor,
-                  fontSize: 24.0,
-                  fontFamily: fontNormal,
-                ),
-              ),
-            )
-          : Column(
-              children: [
-                Text(
-                  "Events",
-                  style: TextStyle(
-                    color: textColor,
-                    fontSize: 18.0,
-                    fontWeight: FontWeight.w500,
-                    fontFamily: fontNormal,
-                  ),
-                ),
-                SizedBox(height: 16.0),
-                ListView.builder(
-                  shrinkWrap: true,
-                  padding: EdgeInsets.all(16.0),
-                  itemCount: _events.length,
-                  itemBuilder: (context, index) {
-                    final event = _events[index];
-                    return Container(
-                      margin: EdgeInsets.symmetric(
-                          vertical: 8.0), // Adds spacing between list items
-                      decoration: BoxDecoration(
-                        color: textColor.withOpacity(0.02),
-                        borderRadius: BorderRadius.circular(16.0),
+      body: Column(
+        children: [
+          SizedBox(height: 16.0),
+          calendar(),
+          _events.isEmpty
+              ? Expanded(
+                  child: Center(
+                    child: Text(
+                      'No events added yet.',
+                      style: TextStyle(
+                        color: textColor,
+                        fontSize: 24.0,
+                        fontFamily: fontNormal,
                       ),
-                      child: ListTile(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                              16.0), // Ensure the ListTile matches the container radius
-                        ),
-                        onTap: () {
-                          showModalBottomSheet(
-                            context: context,
-                            builder: (context) {
-                              return Container(
-                                color: selectedColor,
-                                child: Column(
-                                  children: [
-                                    SizedBox(height: 16.0),
-                                    Text(
-                                      "Task Description: ",
-                                      style: TextStyle(
-                                        color: textColor,
-                                        fontFamily: fontNormal,
-                                        fontSize: 26.0,
-                                      ),
-                                    ),
-                                    ListTile(
-                                      title: Text(
-                                        event.description,
-                                        style: TextStyle(
-                                          color: textColor,
-                                          fontFamily: fontNormal,
+                    ),
+                  ),
+                )
+              : Column(
+                  children: [
+                    Text(
+                      "Events",
+                      style: TextStyle(
+                        color: textColor,
+                        fontSize: 18.0,
+                        fontWeight: FontWeight.w500,
+                        fontFamily: fontNormal,
+                      ),
+                    ),
+                    SizedBox(height: 16.0),
+                    ListView.builder(
+                      shrinkWrap: true,
+                      padding: EdgeInsets.all(16.0),
+                      itemCount: _events.length,
+                      itemBuilder: (context, index) {
+                        final event = _events[index];
+                        return Container(
+                          margin: EdgeInsets.symmetric(
+                              vertical: 8.0), // Adds spacing between list items
+                          decoration: BoxDecoration(
+                            color: textColor.withOpacity(0.02),
+                            borderRadius: BorderRadius.circular(16.0),
+                          ),
+                          child: ListTile(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                  16.0), // Ensure the ListTile matches the container radius
+                            ),
+                            onTap: () {
+                              showModalBottomSheet(
+                                context: context,
+                                builder: (context) {
+                                  return Container(
+                                    color: selectedColor,
+                                    child: Column(
+                                      children: [
+                                        SizedBox(height: 16.0),
+                                        Text(
+                                          "Task Description: ",
+                                          style: TextStyle(
+                                            color: textColor,
+                                            fontFamily: fontNormal,
+                                            fontSize: 26.0,
+                                          ),
                                         ),
-                                      ),
+                                        ListTile(
+                                          title: Text(
+                                            event.description,
+                                            style: TextStyle(
+                                              color: textColor,
+                                              fontFamily: fontNormal,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ],
-                                ),
+                                  );
+                                },
                               );
                             },
-                          );
-                        },
-                        title: Text(
-                          event.name,
-                          style: TextStyle(
-                            color: textColor,
-                            fontFamily: fontNormal,
-                            fontSize: 18.0,
-                            decoration: event.isCompleted
-                                ? TextDecoration.lineThrough
-                                : TextDecoration.none,
-                          ),
-                        ),
-                        subtitle: Text(
-                          _formatDate(event.deadline),
-                          style: TextStyle(
-                            color: textColor,
-                            fontFamily: fontNormal,
-                            fontSize: 12.0,
-                            decoration: event.deadline.isBefore(DateTime.now())
-                                ? TextDecoration.lineThrough
-                                : TextDecoration.none,
-                          ),
-                        ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: Icon(Icons.delete, color: textColor),
-                              onPressed: () => _deleteEvent(event),
-                            ),
-                            IconButton(
-                              icon: Icon(
-                                event.isCompleted
-                                    ? Icons.check_rounded
-                                    : Icons.close_rounded,
-                                size: 28.0,
-                                color: event.isCompleted
-                                    ? Colors.green[300]
-                                    : Colors.red[300],
+                            title: Text(
+                              event.name,
+                              style: TextStyle(
+                                color: textColor,
+                                fontFamily: fontNormal,
+                                fontSize: 18.0,
+                                decoration: event.isCompleted
+                                    ? TextDecoration.lineThrough
+                                    : TextDecoration.none,
                               ),
-                              onPressed: () => _toggleComplete(event),
                             ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
+                            subtitle: Text(
+                              _formatDate(event.deadline),
+                              style: TextStyle(
+                                color: textColor,
+                                fontFamily: fontNormal,
+                                fontSize: 12.0,
+                                decoration:
+                                    event.deadline.isBefore(DateTime.now())
+                                        ? TextDecoration.lineThrough
+                                        : TextDecoration.none,
+                              ),
+                            ),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: Icon(Icons.delete, color: textColor),
+                                  onPressed: () => _deleteEvent(event),
+                                ),
+                                IconButton(
+                                  icon: Icon(
+                                    event.isCompleted
+                                        ? Icons.check_rounded
+                                        : Icons.close_rounded,
+                                    size: 28.0,
+                                    color: event.isCompleted
+                                        ? Colors.green[300]
+                                        : Colors.red[300],
+                                  ),
+                                  onPressed: () => _toggleComplete(event),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
                 ),
-              ],
-            ),
+        ],
+      ),
       floatingActionButton: SizedBox(
         width: MediaQuery.of(context).size.width * 0.4,
         child: FloatingActionButton.extended(
@@ -486,6 +496,16 @@ class _RightScreenState extends State<RightScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget calendar() {
+    return CustomCalendarView(
+      initialDate: DateTime.now(),
+      bgColor: selectedColor,
+      textColor: textColor.withAlpha(204),
+      fontFamily: fontNormal,
+      events: _events,
     );
   }
 }

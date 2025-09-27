@@ -11,7 +11,6 @@ import 'package:minimalauncher/pages/helpers/app_icon.dart';
 import 'package:minimalauncher/pages/right_screen.dart';
 import 'package:minimalauncher/pages/settings_page.dart';
 import 'package:minimalauncher/pages/widgets/app_drawer.dart';
-import 'package:minimalauncher/pages/widgets/calendar_view.dart';
 import 'package:minimalauncher/variables/strings.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -33,7 +32,7 @@ class _LeftScreenState extends State<LeftScreen> {
   Color textColor = Colors.black;
   Color selectedColor = Colors.white;
 
-  static const int maxQuickApps = 5;
+  static const int maxQuickApps = 10;
   List<String?> quickApps = List<String?>.filled(maxQuickApps, null);
 
   List<Event> _events = [];
@@ -151,11 +150,8 @@ class _LeftScreenState extends State<LeftScreen> {
           quickSettings(context),
           divider(),
           temperatureWidget(context),
-          // divider(),
+          divider(),
           Expanded(child: Container()),
-          divider(),
-          calendar(),
-          divider(),
           quickAppsWidget(),
         ],
       ),
@@ -358,16 +354,6 @@ class _LeftScreenState extends State<LeftScreen> {
     );
   }
 
-  Widget calendar() {
-    return CustomCalendarView(
-      initialDate: DateTime.now(),
-      bgColor: selectedColor,
-      textColor: textColor.withAlpha(204),
-      fontFamily: fontNormal,
-      events: _events,
-    );
-  }
-
   Widget quickAppsWidget() {
     return Padding(
       padding: const EdgeInsets.all(8.0),
@@ -385,6 +371,14 @@ class _LeftScreenState extends State<LeftScreen> {
             onTap: () async {
               HapticFeedback.mediumImpact();
               if (packageName == null || packageName == '') {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      duration: Duration(seconds: 2),
+                      content: Text('Select an app to add to QUICK APPS'),
+                    ),
+                  );
+                }
                 await _selectApp(index);
               } else {
                 InstalledApps.startApp(packageName);

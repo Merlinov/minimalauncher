@@ -116,7 +116,8 @@ class _LauncherState extends State<Launcher> {
                 },
                 child: PageView(
                   controller: _pageController,
-                  physics: BouncingScrollPhysics(),
+                  pageSnapping: true,
+                  physics: const SnappyScrollPhysics(), // custom physics
                   children: [
                     LeftScreen(),
                     HomeScreen(key: _homeScreenKey),
@@ -135,6 +136,7 @@ class _LauncherState extends State<Launcher> {
     await _loadPreferences();
 
     // Open the app drawer and wait for a package name to be selected
+    if (!buildContext.mounted) return;
     final String? selectedPackage = await showModalBottomSheet<String>(
       context: buildContext,
       isScrollControlled: true,
@@ -170,4 +172,27 @@ class _LauncherState extends State<Launcher> {
   }
 
   static const MethodChannel _channel = MethodChannel('main_channel');
+}
+
+class SnappyScrollPhysics extends PageScrollPhysics {
+  const SnappyScrollPhysics({ScrollPhysics? parent}) : super(parent: parent);
+
+  @override
+  SnappyScrollPhysics applyTo(ScrollPhysics? ancestor) {
+    return SnappyScrollPhysics(parent: buildParent(ancestor));
+  }
+
+  @override
+  double get minFlingDistance => 1.0;
+  @override
+  double get minFlingVelocity => 50.0;
+  @override
+  double get maxFlingVelocity => 2000.0;
+
+  @override
+  SpringDescription get spring => const SpringDescription(
+        mass: 70,
+        stiffness: 800,
+        damping: 1,
+      );
 }

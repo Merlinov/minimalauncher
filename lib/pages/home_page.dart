@@ -52,27 +52,29 @@ class HomeScreenState extends State<HomeScreen> {
 
   @override
   void initState() {
-    _loadPreferences();
-    _loadFavoriteApps();
-    // _initializeNotificationListener();
-    // _startPolling();
-    _loadDayProgress();
-    _getBatteryPercentage();
-    _loadHomeScreenEvents();
-
-    refreshTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
-      if (mounted) {
-        setState(() {
-          _getBatteryPercentage();
-          _loadDayProgress();
-          _loadHomeScreenEvents();
-        });
-      } else {
-        timer.cancel();
-      }
-    });
-
     super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadPreferences();
+      _loadFavoriteApps();
+      // _initializeNotificationListener();
+      // _startPolling();
+      _loadDayProgress();
+      _getBatteryPercentage();
+      _loadHomeScreenEvents();
+
+      refreshTimer = Timer.periodic(const Duration(seconds: 15), (timer) {
+        if (mounted) {
+          setState(() {
+            _getBatteryPercentage();
+            _loadDayProgress();
+            _loadHomeScreenEvents();
+          });
+        } else {
+          timer.cancel();
+        }
+      });
+    });
   }
 
   @override
@@ -410,36 +412,45 @@ class HomeScreenState extends State<HomeScreen> {
       width: MediaQuery.of(context).size.width * 0.8,
       child: Opacity(
         opacity: 0.8,
-        child: ListView.builder(
-          itemCount: favoriteApps.length,
-          physics: NeverScrollableScrollPhysics(),
-          shrinkWrap: true,
-          itemBuilder: (context, index) {
-            return GestureDetector(
-              onTap: () {
-                HapticFeedback.mediumImpact();
-                InstalledApps.startApp(favoriteApps[index].packageName);
-              },
-              onLongPress: () {
-                HapticFeedback.heavyImpact();
-                editHomeScreenApp(context, index);
-              },
-              child: Row(
-                children: [
-                  Text(
-                    favoriteApps[index].name,
-                    style: TextStyle(
-                      color: textColor,
-                      fontSize: 21,
-                      fontFamily: fontNormal,
+        child: favoriteApps.isEmpty
+            ? Text(
+                "Add a favorite app by \nclicking the STAR ICON \nin the search menu.",
+                textAlign: TextAlign.left,
+                style: TextStyle(
+                    color: textColor.withAlpha(100),
+                    fontFamily: fontNormal,
+                    fontSize: 12.0),
+              )
+            : ListView.builder(
+                itemCount: favoriteApps.length,
+                physics: NeverScrollableScrollPhysics(),
+                shrinkWrap: true,
+                itemBuilder: (context, index) {
+                  return GestureDetector(
+                    onTap: () {
+                      HapticFeedback.mediumImpact();
+                      InstalledApps.startApp(favoriteApps[index].packageName);
+                    },
+                    onLongPress: () {
+                      HapticFeedback.heavyImpact();
+                      editHomeScreenApp(context, index);
+                    },
+                    child: Row(
+                      children: [
+                        Text(
+                          favoriteApps[index].name,
+                          style: TextStyle(
+                            color: textColor,
+                            fontSize: 21,
+                            fontFamily: fontNormal,
+                          ),
+                        ),
+                        Container(height: 2.0),
+                      ],
                     ),
-                  ),
-                  Container(height: 2.0),
-                ],
+                  );
+                },
               ),
-            );
-          },
-        ),
       ),
     );
   }
